@@ -262,10 +262,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         
         // 각 파라미터를 안전하게 디코딩
-        const title = urlParams.get('title') ? safeDecodeURIComponent(urlParams.get('title')) : '';
-        const description = urlParams.get('description') ? safeDecodeURIComponent(urlParams.get('description')) : '';
-        const url = urlParams.get('url') ? safeDecodeURIComponent(urlParams.get('url')) : '';
-        const imageUrl = urlParams.get('imageUrl') ? safeDecodeURIComponent(urlParams.get('imageUrl')) : '';
+        const title = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : '';
+        const description = urlParams.get('description') ? decodeURIComponent(urlParams.get('description')) : '';
+        const url = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : '';
+        const imageUrl = urlParams.get('imageUrl') ? decodeURIComponent(urlParams.get('imageUrl')) : '';
 
         // HTML 요소가 존재하는지 확인 후 업데이트
         const titleElement = document.getElementById('weatherTitle');
