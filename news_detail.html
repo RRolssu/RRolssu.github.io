@@ -89,11 +89,21 @@
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 
+                // 안전한 디코딩 함수
+                function safeDecodeURIComponent(str) {
+                    try {
+                        return decodeURIComponent(str);
+                    } catch (e) {
+                        console.warn('디코딩 오류:', e);
+                        return str;
+                    }
+                }
+                
                 // 각 파라미터를 안전하게 디코딩
-                const title = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : '';
-                const description = urlParams.get('description') ? decodeURIComponent(urlParams.get('description')) : '';
-                const url = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : '';
-                const imageUrl = urlParams.get('imageUrl') ? decodeURIComponent(urlParams.get('imageUrl')) : '';
+                const title = urlParams.get('title') ? safeDecodeURIComponent(urlParams.get('title')) : '';
+                const description = urlParams.get('description') ? safeDecodeURIComponent(urlParams.get('description')) : '';
+                const url = urlParams.get('url') ? safeDecodeURIComponent(urlParams.get('url')) : '';
+                const imageUrl = urlParams.get('imageUrl') ? safeDecodeURIComponent(urlParams.get('imageUrl')) : '';
 
                 // HTML 요소 업데이트
                 document.getElementById('weatherTitle').textContent = title;
