@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>날씨 정보</title>
+    <link rel="icon" href="data:,">
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
+            color: #333;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             background-color: white;
             padding: 20px;
@@ -23,74 +25,87 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        .weather-icon {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto;
-            display: block;
-        }
         .weather-title {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #2c3e50;
         }
-        .weather-description {
+        .weather-image {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            display: block;
+        }
+        .weather-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .weather-detail {
+            margin: 10px 0;
             font-size: 16px;
-            line-height: 1.6;
-            color: #333;
-            margin-bottom: 20px;
-            white-space: pre-line;
-        }
-        .weather-link {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #FEE500;
-            color: #000;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .weather-link:hover {
-            background-color: #FFE000;
         }
         .back-button {
             display: inline-block;
-            margin-top: 20px;
             padding: 10px 20px;
-            background-color: #333;
+            background-color: #007bff;
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        .original-link {
+            display: block;
+            margin-top: 20px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .original-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="weather-header">
-            <h1 class="weather-title" id="weatherTitle">날씨 정보</h1>
-            <img class="weather-icon" id="weatherImage" src="" alt="날씨 아이콘">
-            <p class="weather-description" id="weatherDescription">날씨 설명</p>
-            <a href="#" class="weather-link" id="weatherLink" target="_blank">자세한 날씨 보기</a>
+            <h1 class="weather-title" id="weatherTitle"></h1>
+            <img id="weatherImage" class="weather-image" src="" alt="날씨 아이콘">
         </div>
-        <a href="javascript:history.back()" class="back-button">뒤로 가기</a>
+        <div class="weather-details">
+            <div class="weather-detail" id="weatherDescription"></div>
+        </div>
+        <a href="#" class="back-button" onclick="history.back()">뒤로 가기</a>
+        <a href="#" id="originalLink" class="original-link" target="_blank">원본 날씨 정보 보기</a>
     </div>
 
     <script>
-        // URL 파라미터에서 날씨 데이터 가져오기
-        const urlParams = new URLSearchParams(window.location.search);
-        const weatherData = {
-            title: urlParams.get('title') || '날씨 정보',
-            description: urlParams.get('description') || '날씨 설명',
-            url: urlParams.get('url') || '#',
-            imageUrl: urlParams.get('imageUrl') || 'https://openweathermap.org/img/wn/01d@2x.png'
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // 각 파라미터를 안전하게 디코딩
+                const title = urlParams.get('title') ? decodeURIComponent(decodeURIComponent(urlParams.get('title'))) : '';
+                const description = urlParams.get('description') ? decodeURIComponent(decodeURIComponent(urlParams.get('description'))) : '';
+                const url = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : '';
+                const imageUrl = urlParams.get('imageUrl') ? decodeURIComponent(urlParams.get('imageUrl')) : '';
 
-        // 페이지 요소 업데이트
-        document.getElementById('weatherTitle').textContent = decodeURIComponent(weatherData.title);
-        document.getElementById('weatherDescription').textContent = decodeURIComponent(weatherData.description);
-        document.getElementById('weatherImage').src = weatherData.imageUrl;
-        document.getElementById('weatherLink').href = weatherData.url;
+                // HTML 요소 업데이트
+                document.getElementById('weatherTitle').textContent = title;
+                document.getElementById('weatherDescription').textContent = description;
+                document.getElementById('weatherImage').src = imageUrl;
+                document.getElementById('originalLink').href = url;
+            } catch (error) {
+                console.error('Error processing URL parameters:', error);
+                document.getElementById('weatherTitle').textContent = '날씨 정보를 표시할 수 없습니다';
+                document.getElementById('weatherDescription').textContent = '죄송합니다. 날씨 정보를 불러오는 중 오류가 발생했습니다.';
+            }
+        });
     </script>
 </body>
 </html> 
