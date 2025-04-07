@@ -90,8 +90,8 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 
                 // 각 파라미터를 안전하게 디코딩
-                const title = urlParams.get('title') ? decodeURIComponent(decodeURIComponent(urlParams.get('title'))) : '';
-                const description = urlParams.get('description') ? decodeURIComponent(decodeURIComponent(urlParams.get('description'))) : '';
+                const title = urlParams.get('title') ? decodeURIComponent(urlParams.get('title')) : '';
+                const description = urlParams.get('description') ? decodeURIComponent(urlParams.get('description')) : '';
                 const url = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : '';
                 const imageUrl = urlParams.get('imageUrl') ? decodeURIComponent(urlParams.get('imageUrl')) : '';
 
