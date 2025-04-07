@@ -125,16 +125,16 @@ const sendDataToFriends = async (accessToken) => {
                 description: newsData.description,
                 image_url: newsData.imageUrl,
                 link: {
-                    web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
-                    mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
+                    web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
+                    mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
                 }
             },
             buttons: [
                 {
                     title: '자세히 보기',
                     link: {
-                        web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
-                        mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
+                        web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
+                        mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
                     }
                 }
             ]
@@ -229,5 +229,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('토큰 발급 실패:', error);
                 alert('토큰 발급에 실패했습니다.');
             });
+    }
+});
+
+// 안전한 디코딩 함수 추가
+function safeDecodeURIComponent(str) {
+    try {
+        return decodeURIComponent(str);
+    } catch (e) {
+        return str;
+    }
+}
+
+// URL 파라미터 처리 부분
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // 각 파라미터를 안전하게 디코딩
+        const title = urlParams.get('title') ? safeDecodeURIComponent(urlParams.get('title')) : '';
+        const description = urlParams.get('description') ? safeDecodeURIComponent(urlParams.get('description')) : '';
+        const url = urlParams.get('url') ? safeDecodeURIComponent(urlParams.get('url')) : '';
+        const imageUrl = urlParams.get('imageUrl') ? safeDecodeURIComponent(urlParams.get('imageUrl')) : '';
+
+        // HTML 요소 업데이트
+        document.getElementById('weatherTitle').textContent = title;
+        document.getElementById('weatherDescription').textContent = description;
+        document.getElementById('weatherImage').src = imageUrl;
+        document.getElementById('originalLink').href = url;
+    } catch (error) {
+        console.error('Error processing URL parameters:', error);
+        document.getElementById('weatherTitle').textContent = '날씨 정보를 표시할 수 없습니다';
+        document.getElementById('weatherDescription').textContent = '죄송합니다. 날씨 정보를 불러오는 중 오류가 발생했습니다.';
     }
 });
