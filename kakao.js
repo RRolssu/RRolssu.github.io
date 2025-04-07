@@ -125,16 +125,16 @@ const sendDataToFriends = async (accessToken) => {
                 description: newsData.description,
                 image_url: newsData.imageUrl,
                 link: {
-                    web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
-                    mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
+                    web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
+                    mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
                 }
             },
             buttons: [
                 {
                     title: '자세히 보기',
                     link: {
-                        web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
-                        mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description.replace(/\n/g, '%0A'))}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
+                        web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`,
+                        mobile_web_url: `https://rrolssu.github.io/news_detail.html?title=${encodeURIComponent(newsData.title)}&description=${encodeURIComponent(newsData.description)}&url=${encodeURIComponent(newsData.url)}&imageUrl=${encodeURIComponent(newsData.imageUrl)}`
                     }
                 }
             ]
