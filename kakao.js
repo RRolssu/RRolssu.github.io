@@ -267,14 +267,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = urlParams.get('url') ? safeDecodeURIComponent(urlParams.get('url')) : '';
         const imageUrl = urlParams.get('imageUrl') ? safeDecodeURIComponent(urlParams.get('imageUrl')) : '';
 
-        // HTML 요소 업데이트
-        document.getElementById('weatherTitle').textContent = title;
-        document.getElementById('weatherDescription').textContent = description;
-        document.getElementById('weatherImage').src = imageUrl;
-        document.getElementById('originalLink').href = url;
+        // HTML 요소가 존재하는지 확인 후 업데이트
+        const titleElement = document.getElementById('weatherTitle');
+        const descriptionElement = document.getElementById('weatherDescription');
+        const imageElement = document.getElementById('weatherImage');
+        const linkElement = document.getElementById('originalLink');
+
+        if (titleElement) titleElement.textContent = title;
+        if (descriptionElement) descriptionElement.textContent = description;
+        if (imageElement) imageElement.src = imageUrl;
+        if (linkElement) linkElement.href = url;
     } catch (error) {
         console.error('Error processing URL parameters:', error);
-        document.getElementById('weatherTitle').textContent = '날씨 정보를 표시할 수 없습니다';
-        document.getElementById('weatherDescription').textContent = '죄송합니다. 날씨 정보를 불러오는 중 오류가 발생했습니다.';
     }
 });
