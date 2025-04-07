@@ -1,6 +1,6 @@
 const REST_API_KEY = '4d713aeda8eae6d2d64dac7dd7445e62';
 const REDIRECT_URI = 'https://rrolssu.github.io';
-
+// 가나다라마바사아자차카타
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=talk_message,friends,profile_nickname&prompt=select_account`;
 
 // SDK 초기화
