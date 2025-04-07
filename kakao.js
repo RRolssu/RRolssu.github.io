@@ -178,7 +178,7 @@ const getToken = async (code) => {
                 grant_type: 'authorization_code',
                 client_id: REST_API_KEY,
                 redirect_uri: REDIRECT_URI,
-                code: code,
+                code: code || 'y3jRDfIJJ8SPY2i3DBImvNRrbBAkvzXDshHqzfMHCfI5ARjNZun-iwAAAAQKFwFQAAABlg9DJqpONYg--5I0Sw', // 수동으로 입력한 코드
             }),
         });
         
@@ -187,6 +187,7 @@ const getToken = async (code) => {
         }
         
         const data = await response.json();
+        console.log('토큰 발급 성공:', data);
         
         // 토큰 발급 후 데이터 전송
         if (data.access_token) {
@@ -198,6 +199,20 @@ const getToken = async (code) => {
         console.error('토큰 발급 중 오류 발생:', error);
         throw error;
     }
+};
+
+// 수동으로 토큰 발급을 테스트하는 함수
+const testToken = () => {
+    getToken('y3jRDfIJJ8SPY2i3DBImvNRrbBAkvzXDshHqzfMHCfI5ARjNZun-iwAAAAQKFwFQAAABlg9DJqpONYg--5I0Sw')
+        .then(tokenData => {
+            console.log('토큰 발급 성공:', tokenData);
+            localStorage.setItem('kakao_token', tokenData.access_token);
+            alert('토큰이 발급되었습니다!');
+        })
+        .catch(error => {
+            console.error('토큰 발급 실패:', error);
+            alert('토큰 발급에 실패했습니다.');
+        });
 };
 
 // 로그인 버튼 클릭 시 실행될 함수
