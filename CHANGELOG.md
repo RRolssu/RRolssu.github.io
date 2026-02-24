@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/RRolssu/RRolssu.github.io/compare/v1.0.1...v1.0.2) (2026-02-24)
+
+
+### Bug Fixes
+
+* Update: .releaserc.json,package-lock.json,package.json, ([14ad948](https://github.com/RRolssu/RRolssu.github.io/commit/14ad948d2aae519b0eb970b744df86a584127b1c))
+
 ## [1.0.1](https://github.com/RRolssu/RRolssu.github.io/compare/v1.0.0...v1.0.1) (2026-02-24)
 
 
