@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+if [ -z "$2" ] || [ "$2" = "message" ]; then
+  LIST=$(git diff --cached --name-only | head -20)
+  if [ -n "$LIST" ]; then
+    echo "Update: $(echo "$LIST" | tr '\n' ', ' | sed 's/, $//')" > "$1"
+  fi
+fi
