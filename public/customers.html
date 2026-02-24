@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+
+    <div class="container mt-4">
+        <div class="row align-items-center my-3">
+            <!-- 1. 좌측: 제목 -->
+            <div class="col-md-3">
+                <h3 class="mb-0">고객사 관리</h3>
+            </div>
+            
+            <!-- 2. 중앙: 검색창 -->
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="검색">
+                </div>
+            </div>
+    
+            <!-- 3. 우측: 버튼 -->
+            <div class="col-md-4 text-end">
+                <button class="btn btn-success me-2" onclick="downloadExcel()">
+                    <i class="bi bi-file-earmark-excel"></i> 엑셀
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-responsive bg-white mt-3 border">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <!-- <th>고객사 코드</th> -->
+                        <th>회사명</th>
+                        <th>사업자등록번호</th>
+                        <th>주소</th>
+                        <th>설립일</th>
+                        <th>대표자명</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modals removed -->
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ★★★★ 추가: 로그인 체크 ★★★★
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+
+            loadCustomers();
+        });
+        let allCustomers = [];
+        async function loadCustomers() {
+            const res = await fetch('/api/customers');
+            allCustomers = await res.json();
+            renderTable(allCustomers);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('customerTableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                   <td>${item.name}</td>
+                    <td>${item.business_registration_number || '-'}</td>
+                    <td>${item.address || '-'}</td>
+                    <td>${item.establishment_date ? new Date(item.establishment_date).toLocaleDateString('ko-KR') : '-'}</td>
+                    <td>${item.representative_name || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allCustomers.filter(item => 
+                (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+                (item.business_registration_number && item.business_registration_number.toLowerCase().includes(searchTerm)) ||
+                (item.address && item.address.toLowerCase().includes(searchTerm)) ||
+                (item.representative_name && item.representative_name.toLowerCase().includes(searchTerm))
+            );
+            renderTable(filtered);
+        });
+
+        // Add/Edit/Delete functions removed
+
+        function downloadExcel() {
+            const table = document.querySelector('table');
+            const rows = Array.from(table.rows);
+            const data = rows.map(row => {
+                const cells = Array.from(row.cells);
+                return cells.map(cell => cell.innerText);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            const colWidths = data[0].map((_, colIndex) => {
+                let maxLen = 10;
+                data.forEach(row => {
+                    const cellValue = row[colIndex] ? row[colIndex].toString() : "";
+                    const len = cellValue.length;
+                    const width = (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cellValue)) ? len * 2.2 : len * 1.3;
+                    if (width > maxLen) maxLen = width;
+                });
+                return { wch: maxLen };
+            });
+            ws['!cols'] = colWidths;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[address]) continue;
+                    if (!ws[address].s) ws[address].s = {};
+                    if (!ws[address].s.font) ws[address].s.font = {};
+                    ws[address].s.font.name = "맑은 고딕"; 
+                    ws[address].s.font.sz = 11;
+                    ws[address].s.border = {
+                        top: { style: "thin", color: { auto: 1 } },
+                        bottom: { style: "thin", color: { auto: 1 } },
+                        left: { style: "thin", color: { auto: 1 } },
+                        right: { style: "thin", color: { auto: 1 } }
+                    };
+                }
+            }
+
+            for (let c = range.s.c; c <= range.e.c; ++c) {
+                const address = XLSX.utils.encode_cell({ r: 0, c: c });
+                if (!ws[address]) continue;
+                ws[address].s.fill = { fgColor: { rgb: "E2E2E2" } };
+                ws[address].s.font.bold = true;
+                ws[address].s.alignment = { horizontal: "center", vertical: "center" };
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            const fileName = document.title.split('-')[0].trim() + '.xlsx';
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

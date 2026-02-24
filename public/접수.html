@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    
+    <div id="navbar-container"></div>
+        
+
+    <div class="container mt-4">
+        <div class="row align-items-center my-3">
+            <div class="col-md-3">
+                <h3 class="mb-0">접수 목록</h3>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="검색">
+                </div>
+            </div>
+    
+            <div class="col-md-4 text-end">
+                <!--  추가: 신규 접수 등록 버튼  -->
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReceptionModal">
+                    <i class="bi bi-plus-lg"></i> 신규 접수 등록
+                </button>
+            </div>
+        </div>
+        
+        <!--  추가: 접수 목록 테이블  -->
+        <div class="table-responsive bg-white mt-3 border">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <!-- <th>접수번호</th> -->
+                        <th>제목</th>
+                        <th>고객명</th>
+                        <th>부서</th>
+                        <th>접수자</th>
+                        <th>접수일</th>
+                        <th>요청기한</th>
+                        <th>긴급</th>
+                        <th>접수경로</th>
+                        <th>QC확인</th>
+                    </tr>
+                </thead>
+                <tbody id="receptionTableBody">
+                    <!-- 접수 목록이 여기에 표시됩니다 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!--  추가: 신규 접수 등록 모달  -->
+    <div class="modal fade" id="addReceptionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>신규 접수 등록</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addReceptionForm" enctype="multipart/form-data">
+                        <div class="row">
+                            <!-- 제목 -->
+                            <div class="col-12 mb-3">
+                                <label class="form-label">제목 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="title" required placeholder="접수 제목을 입력하세요">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- 접수일 -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">접수일 <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="reception_date" required>
+                            </div>
+                            <!-- 부서 -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">부서 <span class="text-danger">*</span></label>
+                                <select class="form-select" name="department" required>
+                                    <option value="">선택하세요</option>
+                                    
+                                    <option value="경영지원팀">경영지원팀</option>
+                                    <option value="기술지원팀">기술지원팀</option>
+                                    <option value="생산기술팀">생산기술팀</option>
+                                    <option value="품질관리팀">품질관리팀</option>
+                                    <option value="하드웨어개발팀">하드웨어개발팀</option>
+                                    <option value="소프트웨어개발팀">소프트웨어개발팀</option>
+                                    <option value="기획팀">기획팀</option>
+                                </select>
+                            </div>
+                            <!-- 접수자 -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">접수자 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="receptionist" required placeholder="이름">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- 고객명 -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">고객명 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="customer_name" required placeholder="고객사/고객 이름">
+                            </div>
+                            <!-- 요청 기한 & 긴급 -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">요청 기한</label>
+                                <input type="date" class="form-control" name="deadline">
+                            </div>
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                <!--  추가: 긴급 체크박스  -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_urgent" id="isUrgent" style="transform: scale(1.5);">
+                                    <label class="form-check-label text-danger fw-bold ms-2" for="isUrgent">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> 긴급
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 내용 -->
+                        <div class="mb-3">
+                            <label class="form-label">내용 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="content" id="receptionContent" rows="4" required placeholder="상세 내용을 입력하세요. 이미지는 복사하여 붙여넣기 할 수 있습니다."></textarea>
+                            <small class="text-muted">이미지는 클립보드에서 직접 붙여넣기(Ctrl+V) 가능합니다.</small>
+                        </div>
+                        
+                        <!--  추가: 고객 요청사항 필드  -->
+                        <div class="mb-3">
+                            <label class="form-label">고객 요청사항</label>
+                            <textarea class="form-control" name="customer_request" rows="3" placeholder="고객이 요청한 내용을 입력하세요"></textarea>
+                            <small class="text-muted">컴플레인으로 자동 등록될 때 사용됩니다.</small>
+                        </div>
+
+                        <!-- 파일 첨부 -->
+                        <div class="mb-3">
+                            <label class="form-label">파일 첨부</label>
+                            <input type="file" class="form-control" name="attachments" multiple>  <!--  수정: attachment → attachments  -->
+                            <small class="text-muted">여러 파일 첨부 가능</small>
+                        </div>
+
+                        <!--  수정: 접수 경로 (체크박스로 변경 - 중복 선택 가능)  -->
+                        <div class="mb-3">
+                            <label class="form-label">접수 경로 <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="reception_channel" id="channelMail" value="메일">
+                                    <label class="form-check-label" for="channelMail">
+                                        <i class="bi bi-envelope me-1"></i> 메일
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="reception_channel" id="channelPhone" value="유선">
+                                    <label class="form-check-label" for="channelPhone">
+                                        <i class="bi bi-telephone me-1"></i> 유선
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="reception_channel" id="channelField" value="현장발생">
+                                    <label class="form-check-label" for="channelField">
+                                        <i class="bi bi-geo-alt me-1"></i> 현장발생
+                                    </label>
+                                </div>
+                            </div>
+                            <small class="text-muted">여러 개 선택 가능</small>  <!--  추가  -->
+                        </div>
+
+                        <!--  추가: QC 확인 체크 (QC 부서가 확인 시 체크)  -->
+                        <!-- <div class="mb-3 p-3 bg-light rounded">
+                            <label class="form-label"><i class="bi bi-check2-square me-1"></i> QC 확인</label>
+                            <p class="text-muted small mb-2">QC 부서가 이 접수를 확인하면 체크됩니다.</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dept_confirmed" id="deptConfirmed" disabled>
+                                <label class="form-check-label text-muted" for="deptConfirmed">
+                                    QC 확인 완료 (QC 부서에서 체크)
+                                </label>
+                            </div>
+                        </div> -->
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-lg me-1"></i> 접수 등록
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!--  추가: 인증 스크립트  -->
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            //  추가: 로그인 체크 
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+            
+            // 접수일 기본값: 오늘
+            document.querySelector('input[name="reception_date"]').valueAsDate = new Date();
+            loadReceptions();
+            
+            //  추가: 이미지 붙여넣기 처리 함수 
+            const contentTextarea = document.getElementById('receptionContent');
+            if (contentTextarea) {
+                contentTextarea.addEventListener('paste', async (e) => {
+                    const items = e.clipboardData.items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            e.preventDefault();
+                            const blob = items[i].getAsFile();
+                            
+                            // FormData로 이미지 업로드
+                            const formData = new FormData();
+                            formData.append('image', blob);
+                            
+                            try {
+                                const res = await fetch('/api/receptions/upload-image', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const result = await res.json();
+                                
+                                if (res.ok && result.url) {
+                                    // 텍스트 영역에 이미지 URL 추가
+                                    const cursorPos = contentTextarea.selectionStart;
+                                    const textBefore = contentTextarea.value.substring(0, cursorPos);
+                                    const textAfter = contentTextarea.value.substring(cursorPos);
+                                    contentTextarea.value = textBefore + `\n[이미지: ${result.url}]\n` + textAfter;
+                                    
+                                    // 커서 위치 조정
+                                    const newPos = cursorPos + `\n[이미지: ${result.url}]\n`.length;
+                                    contentTextarea.setSelectionRange(newPos, newPos);
+                                    contentTextarea.focus();
+                                } else {
+                                    alert('이미지 업로드에 실패했습니다.');
+                                }
+                            } catch (err) {
+                                console.error('이미지 업로드 실패:', err);
+                                alert('이미지 업로드에 실패했습니다.');
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+        });
+
+        let allReceptions = [];
+        
+        async function loadReceptions() {
+            try {
+                const res = await fetch('/api/receptions');
+                allReceptions = await res.json();
+                renderTable(allReceptions);
+            } catch (err) {
+                console.error('접수 목록 로드 실패:', err);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('receptionTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">등록된 접수가 없습니다.</td></tr>';
+                return;
+            }
+            
+            data.forEach(r => {
+                const urgentBadge = r.is_urgent 
+                    ? '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> 긴급</span>' 
+                    : '-';
+                const confirmedBadge = r.dept_confirmed 
+                    ? '<span class="badge bg-success"><i class="bi bi-check-lg"></i> 확인</span>' 
+                    : '<span class="badge bg-secondary">미확인</span>';
+                
+                //  수정: 접수 경로 다중 표시 지원 
+                let channelDisplay = '-';
+                try {
+                    const channels = r.reception_channel;
+                    if (channels && channels.startsWith('[')) {
+                        const channelArray = JSON.parse(channels);
+                        if (Array.isArray(channelArray)) {
+                            const channelIcons = {
+                                '메일': '<i class="bi bi-envelope"></i>',
+                                '유선': '<i class="bi bi-telephone"></i>',
+                                '현장발생': '<i class="bi bi-geo-alt"></i>'
+                            };
+                            channelDisplay = channelArray.map(ch => {
+                                const icon = channelIcons[ch] || '';
+                                return icon ? `${icon} ${ch}` : ch;
+                            }).join(', ');
+                        }
+                    } else {
+                        // 단일 값인 경우 (하위 호환)
+                        const channelIcons = {
+                            '메일': '<i class="bi bi-envelope"></i>',
+                            '유선': '<i class="bi bi-telephone"></i>',
+                            '현장발생': '<i class="bi bi-geo-alt"></i>'
+                        };
+                        const icon = channelIcons[channels] || '';
+                        channelDisplay = icon ? `${icon} ${channels}` : channels;
+                    }
+                } catch (e) {
+                    channelDisplay = r.reception_channel || '-';
+                }
+                
+                tbody.innerHTML += `
+                    <tr style="cursor:pointer;" onclick="viewReception(${r.id})">
+                        <!-- <td>${r.reception_no}</td> -->
+                        <td>${r.title}</td>
+                        <td>${r.customer_name}</td>
+                        <td>${r.department}</td>
+                        <td>${r.receptionist}</td>
+                        <td>${r.reception_date}</td>
+                        <td>${r.deadline || '-'}</td>
+                        <td>${urgentBadge}</td>
+                        <td>${channelDisplay}</td>
+                        <td>${confirmedBadge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function viewReception(id) {
+            location.href = `/reception_detail.html?id=${id}`;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allReceptions.filter(r => 
+                // (r.reception_no && r.reception_no.toLowerCase().includes(searchTerm)) ||
+                (r.title && r.title.toLowerCase().includes(searchTerm)) ||
+                (r.customer_name && r.customer_name.toLowerCase().includes(searchTerm)) ||
+                (r.receptionist && r.receptionist.toLowerCase().includes(searchTerm))
+            );
+            renderTable(filtered);
+        });
+
+        document.getElementById('addReceptionForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            //  수정: 체크박스 값들을 배열로 처리 
+            const selectedChannels = [];
+            document.querySelectorAll('input[name="reception_channel"]:checked').forEach(cb => {
+                selectedChannels.push(cb.value);
+            });
+            
+            if (selectedChannels.length === 0) {
+                alert('접수 경로를 최소 1개 이상 선택해주세요.');
+                return;
+            }
+            
+            // reception_channel은 JSON 문자열로 전송
+            formData.delete('reception_channel');  // 기존 값 제거
+            formData.append('reception_channel', JSON.stringify(selectedChannels));  //  수정: JSON 배열로 전송 
+            
+            // 긴급 체크박스 값 처리
+            formData.set('is_urgent', document.getElementById('isUrgent').checked ? '1' : '0');
+            
+            try {
+                const res = await fetch('/api/receptions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.error || '접수 등록에 실패했습니다.');
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addReceptionModal'));
+                modal.hide();
+                e.target.reset();
+                document.querySelector('input[name="reception_date"]').valueAsDate = new Date();
+                await loadReceptions();
+                alert('접수가 등록되었습니다.');
+            } catch (err) {
+                console.error('접수 등록 실패:', err);
+                alert(err.message || '접수 등록에 실패했습니다.');
+            }
+        };
+    </script>
+</body>
+</html>

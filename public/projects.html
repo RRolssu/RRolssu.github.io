@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container mt-4">
+        <div class="row align-items-center my-3">
+            <div class="col-md-3">
+                <h3 class="mb-0">프로젝트 관리</h3>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="검색">
+                </div>
+            </div>
+    
+            <div class="col-md-4 text-end">
+                <a href="http://112.223.244.5:8222/" target="_blank" class="btn btn-info me-2">
+                    <i class="bi bi-calendar-week"></i> Scheduler
+                </a>
+                <button class="btn btn-success me-2" onclick="downloadExcel()">
+                    <i class="bi bi-file-earmark-excel"></i> 엑셀
+                </button>
+            </div>
+        </div>
+        
+        <!-- ★★★★ 추가: 프로젝트 자료 검색 결과 영역 ★★★★ -->
+        <div id="documentSearchResults" class="mb-4" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-3"><i class="bi bi-file-earmark-text me-2"></i>프로젝트 자료 검색 결과</h5>
+                <span id="docResultCount" class="badge bg-primary">0건</span>
+            </div>
+            <div class="table-responsive bg-white border rounded">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>유형</th>
+                            <th>제목</th>
+                            <th>프로젝트</th>
+                            <th>고객사</th>
+                            <th>작성자</th>
+                            <th>등록일</th>
+                            <th>파일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-3"><i class="bi bi-folder me-2"></i>프로젝트 목록</h5>
+            <span id="projectResultCount" class="badge bg-secondary" style="display: none;">0건</span>
+        </div>
+        <div class="table-responsive bg-white border">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>프로젝트 코드</th>
+                        <th>프로젝트명</th>
+                        <th>고객사</th>
+                        <th>제품유형</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody id="projectTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modals removed -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // ★★★★ 추가: 로그인 체크 ★★★★
+        const user = getCurrentUser();
+        if (!user) { location.href = '/login.html'; return; }
+        
+        loadProjects();
+    });
+    let allProjects = [];
+
+    async function loadProjects() {
+        const res = await fetch('/api/projects');
+        allProjects = await res.json();
+        renderTable(allProjects);
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('projectTableBody');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            const tr = document.createElement('tr');
+           
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => location.href = `/project_detail.html?id=${item.id}`;
+            tr.innerHTML = `
+                <td>${item.project_code}</td>
+                <td>${item.name}</td>
+                <td>${item.customer_name}</td>
+                <td>${item.product_type || '-'}</td>
+                <td>${item.status}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    // ★★★★ 수정: 프로젝트 + 자료 통합 검색 ★★★★
+    let searchTimeout = null;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.trim();
+        
+        // 디바운스 처리
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        if (searchTerm === '') {
+            // 검색어가 없으면 전체 프로젝트 표시, 자료 검색 결과 숨김
+            renderTable(allProjects);
+            document.getElementById('documentSearchResults').style.display = 'none';
+            document.getElementById('projectResultCount').style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/projects/search?q=${encodeURIComponent(searchTerm)}`);
+                const data = await res.json();
+                
+                // 프로젝트 결과 렌더링
+                renderTable(data.projects);
+                document.getElementById('projectResultCount').textContent = `${data.projects.length}건`;
+                document.getElementById('projectResultCount').style.display = 'inline';
+                
+                // 자료 검색 결과 렌더링
+                if (data.documents && data.documents.length > 0) {
+                    renderDocumentResults(data.documents);
+                    document.getElementById('documentSearchResults').style.display = 'block';
+                    document.getElementById('docResultCount').textContent = `${data.documents.length}건`;
+                } else {
+                    document.getElementById('documentSearchResults').style.display = 'none';
+                }
+            } catch (err) {
+                console.error('검색 실패:', err);
+                // 실패 시 클라이언트 측 필터링
+                const filtered = allProjects.filter(item => 
+                    (item.project_code && item.project_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (item.customer_name && item.customer_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                );
+                renderTable(filtered);
+            }
+        }, 300);
+    });
+
+    // ★★★★ 추가: 자료 검색 결과 렌더링 함수 ★★★★
+    function renderDocumentResults(documents) {
+        const tbody = document.getElementById('documentTableBody');
+        tbody.innerHTML = '';
+        
+        documents.forEach(doc => {
+            const uploadDate = new Date(doc.uploaded_at).toLocaleDateString('ko-KR');
+            const fileBtn = doc.file_path 
+                ? `<a href="${doc.file_path}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download"></i></a>`
+                : '-';
+            
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => location.href = `/project_detail.html?id=${doc.project_id}`;
+            tr.innerHTML = `
+                <td><span class="badge bg-secondary">${doc.doc_type}</span></td>
+                <td>${doc.title}</td>
+                <td><small>${doc.project_code}</small><br>${doc.project_name}</td>
+                <td>${doc.customer_name}</td>
+                <td>${doc.uploader_name || '-'}</td>
+                <td>${uploadDate}</td>
+                <td onclick="event.stopPropagation();">${fileBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Add/Edit/Delete functions removed
+
+    function downloadExcel() {
+        const table = document.querySelector('table');
+        const rows = Array.from(table.rows);
+        const data = rows.map(row => {
+            const cells = Array.from(row.cells);
+            return cells.slice(0, cells.length - 1).map(cell => cell.innerText);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(data);
+
+        const colWidths = data[0].map((_, colIndex) => {
+             let maxLen = 10;
+             data.forEach(row => {
+                 const cellValue = row[colIndex] ? row[colIndex].toString() : "";
+                 const len = cellValue.length;
+                 const width = (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cellValue)) ? len * 2.2 : len * 1.3;
+                 if (width > maxLen) maxLen = width;
+             });
+             return { wch: maxLen };
+        });
+        ws['!cols'] = colWidths;
+
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!ws[address]) continue;
+                if (!ws[address].s) ws[address].s = {};
+                if (!ws[address].s.font) ws[address].s.font = {};
+                ws[address].s.font.name = "맑은 고딕"; 
+                ws[address].s.font.sz = 11;
+                 ws[address].s.border = {
+                    top: { style: "thin", color: { auto: 1 } },
+                    bottom: { style: "thin", color: { auto: 1 } },
+                    left: { style: "thin", color: { auto: 1 } },
+                    right: { style: "thin", color: { auto: 1 } }
+                };
+            }
+        }
+
+        for (let c = range.s.c; c <= range.e.c; ++c) {
+            const address = XLSX.utils.encode_cell({ r: 0, c: c });
+            if (!ws[address]) continue;
+            ws[address].s.fill = { fgColor: { rgb: "E2E2E2" } };
+            ws[address].s.font.bold = true;
+            ws[address].s.alignment = { horizontal: "center", vertical: "center" };
+        }
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        const fileName = document.title.split('-')[0].trim() + '.xlsx';
+        XLSX.writeFile(wb, fileName);
+    }
+</script>
+</body>
+</html>

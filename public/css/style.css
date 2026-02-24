@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+    /* ★★★★ 모던한 컬러 팔레트 정의 ★★★★ */
+    --primary-color: #2c3e50; /* 딥 네이비 */
+    --accent-color: #3498db;  /* 밝은 블루 */
+    --bg-light: #f3f4f6;      /* 아주 연한 그레이 배경 */
+    --text-dark: #333333;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+    background-color: var(--bg-light); /* ★★★★ 배경색 변경 ★★★★ */
+    font-family: 'Noto Sans KR', sans-serif; /* ★★★★ 폰트 변경 ★★★★ */
+    color: var(--text-dark);
+}
+
+/* ★★★★ 네비게이션 바 스타일 업그레이드 ★★★★ */
+.navbar {
+    background-color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    color: #555 !important;
+    font-weight: 500;
+    margin-right: 15px;
+    transition: color 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--accent-color) !important;
+}
+
+/* ★★★★ 카드 디자인: 둥근 모서리와 그림자 추가 ★★★★ */
+.card {
+    border: none;
+    border-radius: 12px; /* ★★★★ 둥근 모서리 ★★★★ */
+    box-shadow: var(--card-shadow); /* ★★★★ 입체감 추가 ★★★★ */
+    background: white;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px); /* 마우스 올리면 살짝 떠오름 */
+}
+
+.card-title {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.display-4 {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* ★★★★ 테이블 디자인 업그레이드 ★★★★ */
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    background: white;
+    padding: 10px;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    color: #495057;
+    font-weight: 600;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: #f1f3f5;
+    padding: 15px 10px;
+}
+
+/* ★★★★ 배지(Badge) 스타일링 ★★★★ */
+.badge {
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Action History Timeline Style (기존 유지하되 색상 미세 조정) */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    border-left: 2px solid #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -37px; /* 위치 미세 조정 */
+    top: 5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 1px #e9ecef;
+}

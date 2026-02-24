@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- ★★★★ Handsontable CSS ★★★★ -->
+    <link href="https://cdn.jsdelivr.net/npm/handsontable@14.4.0/dist/handsontable.full.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 0; overflow: hidden; height: 100vh; }
+        #navbar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: white;
+        }
+        .container-fluid.mt-4 {
+            margin-top: 80px !important;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+        }
+        #hotContainer {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+        .htSearchResult { background-color: #fff3cd !important; }
+        /* ★★★★ 엑셀 스타일 ★★★★ */
+        #hotContainer .htCore thead th {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600;
+            border: 1px solid #1a5c38;
+            padding: 8px 10px;
+        }
+        #hotContainer .htCore td, #hotContainer .htCore th {
+            border: 1px solid #d4d4d4 !important;
+            padding: 6px 10px;
+        }
+        #hotContainer .htCore tbody tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+        #hotContainer .htCore tbody tr:nth-child(n+3):hover td {
+            background-color: #e8f4fc !important;
+        }
+        /* ★★★★ 1·2행 헤더는 hover 효과 없음 (항상 초록색 유지) ★★★★ */
+        #hotContainer .handsontable .ht_master .htCore tbody tr:nth-child(-n+2):hover td,
+        #hotContainer .handsontable .ht_clone_top .htCore tbody tr:nth-child(-n+2):hover td,
+        #hotContainer .handsontable .ht_clone_top tr:hover td {
+            background: #217346 !important;
+            color: #fff !important;
+        }
+        #hotContainer .htCore {
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        #hotContainer .htCore .rowHeader {
+            background: #e0e0e0 !important;
+            border: 1px solid #d4d4d4;
+            font-weight: 600;
+            color: #333;
+        }
+        #hotContainer .handsontable .ht_master .wtHolder {
+            overflow: auto !important;
+        }
+        #hotContainer .handsontable .ht_master .htCore tbody tr:nth-child(-n+2) td {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+        #hotContainer .handsontable .ht_clone_top td {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <div class="container-fluid mt-4 px-3">
+        <div class="row align-items-center my-3">
+            <div class="col">
+                <h3 class="mb-0">수주대장</h3>
+            </div>
+            <!-- ★★★★ 검색 UI ★★★★ -->
+            <div class="col-auto d-flex align-items-center gap-2">
+                <select id="yearSelect" class="form-select form-select-sm text-nowrap" style="width: auto;">
+                    <option value="">연도 선택</option>
+                    <option value="2024">2024년</option>
+                    <option value="2025">2025년</option>
+                    <option value="2026">2026년</option>
+                </select>
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="검색...">
+                </div>
+            </div>
+        </div>
+        <div id="hotContainer"></div>
+        <div id="noDataMsg" class="alert alert-secondary mt-3" style="display:none;">
+            <i class="bi bi-info-circle me-2"></i>경영관리에서 수주대장을 등록해주세요.
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ★★★★ Handsontable JS ★★★★ -->
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.4.0/dist/handsontable.full.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let hotInstance = null;
+        const gridState = { fullRows: [], fullStyles: [], headers: [], currentRows: [], currentStyles: [], fullMergeCells: [] }; // fullMergeCells 추가
+
+        function buildGrid(rows, bodyStyles, mergeCells) {
+            if (hotInstance) {
+                hotInstance.destroy();
+                hotInstance = null;
+            }
+            const container = document.getElementById('hotContainer');
+            const noDataMsg = document.getElementById('noDataMsg');
+
+            if (!rows?.length) {
+                container.style.display = 'none';
+                noDataMsg.style.display = 'block';
+                return;
+            }
+            container.style.display = 'block';
+            noDataMsg.style.display = 'none';
+
+            gridState.headerRows = rows.slice(0, 2);
+            gridState.dataRows = rows.slice(2);
+            gridState.fullRows = rows;
+            gridState.fullStyles = bodyStyles || [];
+            gridState.fullMergeCells = mergeCells || [];
+            gridState.currentRows = rows;
+            gridState.currentStyles = gridState.fullStyles;
+            gridState.fixedRowsTop = 2;
+
+            hotInstance = new Handsontable(container, {
+                data: gridState.currentRows,
+                colHeaders: false,
+                rowHeaders: false,
+                readOnly: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                stretchH: 'all',
+                autoWrapRow: false,
+                autoWrapCol: false,
+                manualColumnResize: true,
+                manualRowResize: true,
+                columnSorting: true,
+                search: true,
+                renderAllRows: true,
+                fixedRowsTop: 2,
+                mergeCells: gridState.fullMergeCells,
+                cells: function(row, col) {
+                    const cellProperties = {};
+                    if (row < 2) {
+                        cellProperties.renderer = function(instance, td, rowIdx, colIdx, prop, value, cellProps) {
+                            Handsontable.renderers.TextRenderer.apply(this, arguments);
+                            td.style.backgroundColor = '#217346';
+                            td.style.color = '#fff';
+                            td.style.fontWeight = '600';
+                            td.style.textAlign = 'center';
+                            td.style.verticalAlign = 'middle';
+                        };
+                        return cellProperties;
+                    }
+                    const style = gridState.currentStyles[row]?.[col];
+                    if (style?.backgroundColor) {
+                        cellProperties.renderer = function(instance, td, rowIdx, colIdx, prop, value, cellProps) {
+                            Handsontable.renderers.TextRenderer.apply(this, arguments);
+                            td.style.backgroundColor = style.backgroundColor;
+                        };
+                    }
+                    return cellProperties;
+                }
+            });
+
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            searchInput.oninput = function() {
+                const query = (this.value || '').trim().toLowerCase();
+                if (!query) {
+                    gridState.currentRows = gridState.fullRows;
+                    gridState.currentStyles = gridState.fullStyles;
+                    hotInstance.loadData(gridState.currentRows);
+                    hotInstance.updateSettings({ mergeCells: gridState.fullMergeCells });
+                    return;
+                }
+                const headerStyles = gridState.fullStyles.slice(0, 2);
+                const dataRows = gridState.dataRows;
+                const dataStyles = gridState.fullStyles.slice(2);
+                const matched = dataRows
+                    .map((row, idx) => ({ row, idx }))
+                    .filter(({ row }) => row.some(cell => String(cell ?? '').toLowerCase().includes(query)));
+                gridState.currentRows = [...gridState.headerRows, ...matched.map(({ row }) => row)];
+                gridState.currentStyles = [...headerStyles, ...matched.map(({ idx }) => dataStyles[idx])];
+                const headerOnlyMergeCells = (gridState.fullMergeCells || []).filter(m => m.row < 2);
+                hotInstance.loadData(gridState.currentRows);
+                hotInstance.updateSettings({ mergeCells: headerOnlyMergeCells });
+            };
+        }
+
+        async function loadOrderBook(year) {
+            try {
+                const url = year ? `/api/order-book?year=${year}` : '/api/order-book';
+                const res = await fetch(url);
+                const data = await res.json();
+                const allRows = data.rows || [];
+                
+                let rows = allRows;
+                let bodyStyles = data.bodyStyles || [];
+                if (data.headers?.length) {
+                    rows = [...data.headers, ...allRows];
+                }
+                const mergeCells = data.mergeCells || [];
+                buildGrid(rows, bodyStyles, mergeCells);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('noDataMsg').style.display = 'block';
+            }
+        }
+        document.getElementById('yearSelect').addEventListener('change', (e) => {
+            const year = e.target.value ? parseInt(e.target.value) : null;
+            loadOrderBook(year);
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+            try {
+                const res = await fetch('/api/order-book');
+                const data = await res.json();
+                const yearSelect = document.getElementById('yearSelect');
+                if (data.year && yearSelect) yearSelect.value = data.year;
+                loadOrderBook(data.year);
+            } catch (err) {
+                loadOrderBook();
+            }
+        });
+    </script>
+</body>
+</html>

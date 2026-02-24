@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container mt-4">
+        <div class="row align-items-center my-3">
+            <div class="col-md-3">
+                <h3 class="mb-0">클레임 목록</h3>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="검색">
+                </div>
+            </div>
+    
+            <div class="col-md-4 text-end">
+                <button class="btn btn-success me-2" onclick="downloadExcel()">
+                    <i class="bi bi-file-earmark-excel"></i> 엑셀
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="bi bi-plus-lg"></i> 신규 등록
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-responsive bg-white mt-3 border">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>프로젝트</th>
+                        <th>제목</th>
+                        <th>고객사</th>
+                        <th>담당자</th>
+                        <th>접수일</th>
+                    </tr>
+                </thead>
+                <tbody id="complaintTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">신규 컴플레인 등록</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addComplaintForm">
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">프로젝트</label>
+                                <select class="form-select" name="project_id" id="projectSelect" required></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">제목</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="row">
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">담당자</label>
+                                <input type="text" class="form-control" name="manager_name" value="미지정">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">접수일</label>
+                                <input type="date" class="form-control" name="received_date" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">상세 내용</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">고객 요청사항</label>
+                            <textarea class="form-control" name="customer_request" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">등록</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ★★★★ 추가: 로그인 체크 ★★★★
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+            
+            loadComplaints();
+            loadProjects();
+        });
+        let allComplaints = [];
+        
+        async function loadComplaints() {
+            const res = await fetch('/api/complaints');
+            allComplaints = await res.json();
+            renderTable(allComplaints);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('complaintTableBody');
+            tbody.innerHTML = '';
+            data.forEach(c => {
+                tbody.innerHTML += `
+                    <tr> 
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.complaint_no}</td>
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.project_name}</td>
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.title}</td>
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.customer_name}</td>
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.manager_name || '-'}</td>
+                        <td onclick="location.href='/complaint_detail.html?id=${c.id}'" style="cursor:pointer;">${c.received_date}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allComplaints.filter(c => 
+                (c.complaint_no && c.complaint_no.toLowerCase().includes(searchTerm)) ||
+                (c.title && c.title.toLowerCase().includes(searchTerm)) ||
+                (c.project_name && c.project_name.toLowerCase().includes(searchTerm)) ||
+                (c.customer_name && c.customer_name.toLowerCase().includes(searchTerm))
+            );
+            renderTable(filtered);
+        });
+
+        async function loadProjects() {
+            const res = await fetch('/api/projects');
+            const data = await res.json();
+            const select = document.getElementById('projectSelect');
+            data.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">[${p.project_code}] ${p.name}</option>`;
+            });
+        }
+
+
+
+        document.getElementById('addComplaintForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            await fetch('/api/complaints', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            location.reload();
+        };
+
+        // Delete function removed
+
+        function downloadExcel() {
+            const table = document.querySelector('table');
+            const rows = Array.from(table.rows);
+            const data = rows.map(row => {
+                const cells = Array.from(row.cells);
+                return cells.slice(0, cells.length - 1).map(cell => cell.innerText);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            const colWidths = data[0].map((_, colIndex) => {
+                let maxLen = 10;
+                data.forEach(row => {
+                    const cellValue = row[colIndex] ? row[colIndex].toString() : "";
+                    const len = cellValue.length;
+                    const width = (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cellValue)) ? len * 2.2 : len * 1.3;
+                    if (width > maxLen) maxLen = width;
+                });
+                return { wch: maxLen };
+            });
+            ws['!cols'] = colWidths;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[address]) continue;
+                    if (!ws[address].s) ws[address].s = {};
+                    if (!ws[address].s.font) ws[address].s.font = {};
+                    ws[address].s.font.name = "맑은 고딕"; 
+                    ws[address].s.font.sz = 11;
+                    ws[address].s.border = {
+                        top: { style: "thin", color: { auto: 1 } },
+                        bottom: { style: "thin", color: { auto: 1 } },
+                        left: { style: "thin", color: { auto: 1 } },
+                        right: { style: "thin", color: { auto: 1 } }
+                    };
+                }
+            }
+
+            for (let c = range.s.c; c <= range.e.c; ++c) {
+                const address = XLSX.utils.encode_cell({ r: 0, c: c });
+                if (!ws[address]) continue;
+                ws[address].s.fill = { fgColor: { rgb: "E2E2E2" } };
+                ws[address].s.font.bold = true;
+                ws[address].s.alignment = { horizontal: "center", vertical: "center" };
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            const fileName = document.title.split('-')[0].trim() + '.xlsx';
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

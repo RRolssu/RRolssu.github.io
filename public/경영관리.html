@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+    <!-- ★★★★ Handsontable CSS ★★★★ -->
+    <link href="https://cdn.jsdelivr.net/npm/handsontable@14.4.0/dist/handsontable.full.min.css" rel="stylesheet">
+    <style>
+        /* 상단바 고정 */
+        html, body { overflow-x: hidden; }
+        body { padding-top: 0; overflow: hidden; height: 100vh; }
+        #navbar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: white;
+            width: 100%;
+        }
+        .container-fluid.mt-4 {
+            margin-top: 80px !important;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+        }
+        #hotContainer {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+        #hotContainer .handsontable .ht_master .htCore tbody tr:nth-child(-n+2) td,
+        #hotContainer .handsontable .ht_clone_top .htCore tbody tr:nth-child(-n+2) td {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            border-color: #1a5c38 !important;
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+        #hotContainer .ht_clone_top .htBorders,
+        #hotContainer .ht_clone_top .htBorders * {
+            pointer-events: none !important;
+        }
+        #hotContainer .htCore tbody tr:nth-child(-n+2) td {
+            position: relative;
+        }
+        #hotContainer .ht-resize-col-handle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+        #hotContainer .ht-resize-col-handle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        #hotContainer .ht-resize-row-handle {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 6px;
+            cursor: row-resize;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+        #hotContainer .ht-resize-row-handle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        #hotContainer .htCore thead th {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600;
+            border: 1px solid #1a5c38;
+            padding: 8px 10px;
+        }
+        #hotContainer .htCore td, #hotContainer .htCore th {
+            border: 1px solid #d4d4d4 !important;
+            padding: 6px 10px;
+        }
+        /* 1행 초록: 클론은 td만으로 지정 (DOM 구조 무관) */
+        #hotContainer .handsontable .ht_clone_top td { /* This applies to fixed rows */
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600;
+            border-color: #1a5c38;
+            height: 34px !important;
+            max-height: 34px !important;
+            box-sizing: border-box;
+        }
+        #hotContainer .handsontable .ht_clone_top td:hover {
+            background: #217346 !important;
+        }
+        /* 마스터 1행(데이터 0행) 초록 */
+        #hotContainer .handsontable .ht_master .htCore tbody tr:first-child td {
+            background: #217346 !important;
+            color: #fff !important;
+            font-weight: 600;
+            border-color: #1a5c38;
+        }
+        #hotContainer .handsontable .ht_master .htCore tbody tr:first-child:hover td {
+            background: #217346 !important;
+        }
+        /* 마스터 2행부터 짝수 행 */
+        #hotContainer .handsontable .ht_master .htCore tbody tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+        /* This rule seems redundant with the previous first-child rule */
+        /* #hotContainer .handsontable .ht_master .htCore tbody tr:first-child td {
+            background: #217346 !important;
+            color: #fff !important;
+        } */
+        #hotContainer .htCore tbody tr:nth-child(n+3):hover td {
+            background-color: #e8f4fc !important;
+        }
+        /* ★★★★ 1·2행 헤더는 hover 효과 없음 (항상 초록색 유지) ★★★★ */
+        #hotContainer .handsontable .ht_master .htCore tbody tr:nth-child(-n+2):hover td,
+        #hotContainer .handsontable .ht_clone_top .htCore tbody tr:nth-child(-n+2):hover td,
+        #hotContainer .handsontable .ht_clone_top tr:hover td {
+            background: #217346 !important;
+            color: #fff !important;
+        }
+        #hotContainer .htCore {
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        #hotContainer .htCore .rowHeader {
+            background: #e0e0e0 !important;
+            border: 1px solid #d4d4d4;
+            font-weight: 600;
+            color: #333;
+        }
+        /* ht_clone_top의 2행도 초록색 (스크롤 시 고정 헤더) */
+        #hotContainer .handsontable .ht_clone_top tr:nth-child(2) td {
+            background: #217346 !important;
+            color: #fff !important;
+        }
+        #hotContainer .handsontable .ht_master .wtHolder {
+            overflow: auto !important;
+        }
+        #hotContainer .handsontable .ht_clone_top .wtHolder {
+            overflow: hidden !important;
+        }
+        #hotContainer .htCore td,
+        #hotContainer .htCore th {
+            text-align: center !important;  /* ★★★★ 모든 셀 중앙 정렬 ★★★★ */
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    <div class="container-fluid mt-4 px-3">
+        <div class="row align-items-center my-3">
+            <div class="col">
+                <h3 class="mb-0">경영관리 - 수주대장</h3>
+            </div>
+            <div class="col-auto d-flex align-items-center gap-2">
+                <select id="yearSelect" class="form-select form-select-sm text-nowrap" style="width: auto;">
+                    <option value="">연도 선택...</option>
+                    <option value="2024">2024년</option>
+                    <option value="2025">2025년</option>
+                    <option value="2026">2026년</option>
+                </select>
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="검색...">
+                </div>
+                <input type="file" id="excelFile" class="form-control form-control-sm w-auto" accept=".xlsx,.xls">
+                <button id="btnSave" class="btn btn-primary btn-sm text-nowrap" disabled>저장</button>
+                
+            </div>
+        </div>
+        <div id="hotContainer"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ★★★★ Handsontable JS ★★★★ -->
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.4.0/dist/handsontable.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.4.0/dist/languages/ko-KR.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        const SKIP_COLUMNS = [6,7,8,17,18,19];
+        const shouldSkipCol = c => SKIP_COLUMNS.includes(c);
+        function columnLetterToNum(letters) {
+            let n = 0;
+            const str = String(letters).toUpperCase();
+            for (let i = 0; i < str.length; i++) {
+                n = n * 26 + (str.charCodeAt(i) - 64);
+            }
+            return n;
+        }
+        let parsedData = null;
+        let hotInstance = null; // AG Grid 대신 Handsontable 인스턴스 사용
+
+        function parseExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const workbook = new ExcelJS.Workbook();
+                        await workbook.xlsx.load(e.target.result);
+                        const ws = workbook.worksheets[0];
+                        if (!ws) {
+                            reject(new Error('시트가 없습니다.'));
+                            return;
+                        }
+                        const getCellStyle = (cell) => {
+                            if (!cell || !cell.fill) return null;
+                            const fill = cell.fill;
+                            let rgb = null;
+                            if (fill.fgColor && fill.fgColor.argb) {
+                                rgb = fill.fgColor.argb;
+                            } else if (fill.fgColor && fill.fgColor.theme !== undefined) return null;
+                            if (rgb && rgb.length >= 6) {
+                                return { backgroundColor: '#' + rgb.slice(-6) };
+                            }
+                            return null;
+                        };
+                        const getCellValue = (cell) => {
+                            if (!cell || cell.value == null) return '';
+                            const v = cell.value;
+                            if (v instanceof Date) {
+                                const yyyy = v.getFullYear();
+                                const mm = String(v.getMonth() + 1).padStart(2, '0');
+                                const dd = String(v.getDate()).padStart(2, '0');
+                                return `${yyyy}-${mm}-${dd}`;
+                            }
+                            if (typeof v === 'object') {
+                                if (v.text !== undefined) return v.text;
+                                if (v.richText) return v.richText.map(rt => rt.text).join('');
+                                if (v.result !== undefined) return String(v.result);
+                                return '';
+                            }
+                            return String(v);
+                        };
+                        const rowCount = ws.rowCount || 0;
+                        const colCount = ws.columnCount || 0;
+                        if (rowCount < 2 || colCount < 1) {
+                            resolve({ headerRow: [], bodyRows: [], headerStyle: [], bodyStyles: [], mergeCells: [] });
+                            return;
+                        }
+                        
+                        // 엑셀 2번째 행부터 실제 데이터로 파싱 (Handsontable의 data에 사용)
+                        // headerRow는 Handsontable의 기본 colHeaders(A,B,C...)를 사용하므로 여기서 파싱하지 않음
+                        const bodyRows = [], bodyStyles = [];
+                        for (let r = 2; r <= rowCount; r++) { // Start from Excel row 2 for data
+                            if (r === 4) continue;
+                            const row = [], styles = [];
+                            for (let c = 1; c <= colCount; c++) {
+                                if (shouldSkipCol(c)) continue;
+                                const cell = ws.getCell(r, c);
+                                row.push(getCellValue(cell));
+                                styles.push(getCellStyle(cell));
+                            }
+                            bodyRows.push(row);
+                            bodyStyles.push(styles);
+                        }
+                        
+                        // 병합 셀 정보 추출 및 변환
+                        const mergeCells = [];
+                        const merges = (ws.model && ws.model.merges) ? ws.model.merges : [];
+                        if (Array.isArray(merges)) {
+                            merges.forEach((rangeStr) => {
+                                const s = String(rangeStr);
+                                const m = s.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/);
+                                if (!m) return;
+                                const startCol = columnLetterToNum(m[1]);
+                                const startRow = parseInt(m[2], 10);
+                                const endCol = columnLetterToNum(m[3]);
+                                const endRow = parseInt(m[4], 10);
+                                
+                                // Handsontable의 bodyRows는 엑셀 2번째 행부터 시작하므로
+                                // 엑셀의 병합 시작 행이 2 이상인 경우에만 bodyRows에 해당합니다.
+                                if (startRow >= 2) { // Only merges from Excel row 2 onwards (actual data)
+                                    let adjustedStartCol = -1; // Handsontable에 표시되는 시작 컬럼 인덱스 (0-based)
+                                    let actualColspan = 0;     // Handsontable에 표시되는 실제 colspan
+
+                                    let visibleColCounter = 0;
+                                    for (let excelCol = 1; excelCol <= colCount; excelCol++) {
+                                        if (shouldSkipCol(excelCol)) {
+                                            continue;
+                                        }
+
+                                        if (excelCol >= startCol && excelCol <= endCol) {
+                                            // 병합 범위 내에 있고, 건너뛰지 않는 컬럼
+                                            if (adjustedStartCol === -1) {
+                                                adjustedStartCol = visibleColCounter;
+                                            }
+                                            actualColspan++;
+                                        }
+                                        visibleColCounter++;
+                                    }
+
+                                    if (adjustedStartCol === -1 || actualColspan === 0) return; // 병합된 셀이 모두 건너뛰는 컬럼일 경우 무시
+
+                                    const rowspan = endRow - startRow + 1;
+                                    const colspan = actualColspan;
+                                    if (rowspan < 1 || colspan < 1) return; // Ensure valid rowspan/colspan
+
+                                    mergeCells.push({
+                                        row: startRow - 2, // 엑셀 2행 -> bodyRows의 0행
+                                        col: adjustedStartCol, 
+                                        rowspan: rowspan,
+                                        colspan: colspan
+                                    });
+                                }
+                            });
+                        }
+                        // ★★★★ 디버깅: 파싱된 병합 셀 정보 확인 ★★★★
+                        console.log('parseExcelFile - 추출된 최종 병합 셀 배열:', mergeCells);
+                        
+                        resolve({ headerRow: [], bodyRows, bodyStyles, mergeCells }); // headerRow는 빈 배열로 전달
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = () => reject(reader.error);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function buildEditableGrid() {
+            if (!parsedData) return;
+            if (hotInstance) {
+                hotInstance.destroy();
+                hotInstance = null;
+            }
+            const { bodyRows, bodyStyles, mergeCells } = parsedData; // headerRow는 더이상 사용하지 않음
+            
+
+            const container = document.getElementById('hotContainer');
+            
+            /* ★★★★ 헤더/데이터 분리 (검색 기능을 위해) ★★★★ */
+            parsedData.headerRows = bodyRows.slice(0, 2);
+            parsedData.dataRows = bodyRows.slice(2);
+            parsedData.headerStyles = bodyStyles.slice(0, 2);
+            parsedData.dataStyles = bodyStyles.slice(2);
+            
+            
+            hotInstance = new Handsontable(container, {
+                data: bodyRows,
+                language: 'ko-KR',
+                colHeaders: false,
+                rowHeaders: false,
+                stretchH: 'none',
+                autoWrapRow: false,
+                autoWrapCol: false,
+                manualColumnResize: true,
+                manualRowResize: true,
+                columnSorting: true,
+                contextMenu: true,
+                plugins: ['filters'],
+                filters: true,
+                dropdownMenu: true,
+                licenseKey: 'non-commercial-and-evaluation',
+                fixedRowsTop: 2,
+                mergeCells: mergeCells,
+                cells: function(row, col) {
+                    var cellProperties = {};
+                    if (row <= 1) {
+                        cellProperties.renderer = function(instance, td, rowIdx, colIdx, prop, value, cellProps) {
+                            Handsontable.renderers.TextRenderer.apply(this, arguments);
+                            td.style.backgroundColor = '#217346';
+                            td.style.color = '#fff';
+                            td.style.fontWeight = '600';
+                            td.style.verticalAlign = 'middle';
+                            td.style.textAlign = 'center';
+                            var merges = mergeCells || [];
+                            var isColMergedFromRow0 = function(c) { return merges.some(function(m) { return m.row === 0 && m.rowspan >= 2 && c >= m.col && c < m.col + m.colspan; }); };
+                            var isTopLeftOfRow01Merge = function(r, c) { return merges.some(function(m) { return m.row === 0 && m.col === c && m.rowspan >= 2; }); };
+                            var showFilter = (rowIdx === 0 && isTopLeftOfRow01Merge(0, colIdx)) || (rowIdx === 1 && !isColMergedFromRow0(colIdx));
+                            if (showFilter) {
+                                var icon = td.querySelector('.ht-filter-trigger');
+                                if (!icon) {
+                                    icon = document.createElement('span');
+                                    icon.className = 'ht-filter-trigger bi bi-funnel';
+                                    icon.setAttribute('title', '필터');
+                                    icon.style.cursor = 'pointer';
+                                    icon.style.marginLeft = '4px';
+                                    icon.style.opacity = '0.9';
+                                    icon.onclick = function(e) {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        instance.selectCell(rowIdx, colIdx);
+                                        var r = td.getBoundingClientRect();
+                                        var dropdown = instance.getPlugin('dropdownMenu');
+                                        if (dropdown && dropdown.open) dropdown.open({ top: r.bottom, left: r.left });
+                                    };
+                                    td.appendChild(icon);
+                                }
+                            }
+                            if (!td.querySelector('.ht-resize-col-handle')) {
+                                var colHandle = document.createElement('div');
+                                colHandle.className = 'ht-resize-col-handle';
+                                colHandle.title = '열 너비 조절';
+                                colHandle.setAttribute('data-col', colIdx);
+                                td.appendChild(colHandle);
+                            }
+                            if (!td.querySelector('.ht-resize-row-handle')) {
+                                var rowHandle = document.createElement('div');
+                                rowHandle.className = 'ht-resize-row-handle';
+                                rowHandle.title = '행 높이 조절';
+                                rowHandle.setAttribute('data-row', rowIdx);
+                                td.appendChild(rowHandle);
+                            }
+                        };
+                        return cellProperties;
+                    }
+                    var style = bodyStyles[row] && bodyStyles[row][col];
+                    if (style && style.backgroundColor) {
+                        cellProperties.renderer = function(instance, td, rowIdx, colIdx, prop, value, cellProps) {
+                            Handsontable.renderers.TextRenderer.apply(this, arguments);
+                            td.style.backgroundColor = style.backgroundColor;
+                        };
+                    }
+                    return cellProperties;
+                },
+                afterChange: function(changes, source) {
+                    if (source === 'loadData') return; // 초기 로드 시에는 실행 안 함
+                    document.getElementById('btnSave').disabled = false;
+                    syncParsedDataFromGrid();
+                }
+            });
+            (function() {
+                if (document._hotResizeDelegation) return;
+                document._hotResizeDelegation = true;
+                document.addEventListener('mousedown', function(e) {
+                    if (!hotInstance) return;
+                    if (!e.target.closest('#hotContainer')) return;
+                    var colHandle = e.target.closest('.ht-resize-col-handle');
+                    var rowHandle = e.target.closest('.ht-resize-row-handle');
+                    if (!colHandle && !rowHandle) return;
+                    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#hotContainer')) {
+                        document.activeElement.blur();
+                    }
+                    if (colHandle) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var c = parseInt(colHandle.getAttribute('data-col'), 10);
+                        if (isNaN(c)) return;
+                        var startX = e.clientX;
+                        var startW = hotInstance.getColWidth(c) || 50;
+                        var numCols = hotInstance.countCols();
+                        var widths = [];
+                        for (var i = 0; i < numCols; i++) widths.push(hotInstance.getColWidth(i) || 50);
+                        function move(e2) {
+                            var dx = e2.clientX - startX;
+                            var w = Math.max(20, startW + dx);
+                            widths[c] = w;
+                            hotInstance.updateSettings({ colWidths: widths });
+                            startW = w;
+                            startX = e2.clientX;
+                        }
+                        function up() {
+                            document.removeEventListener('mousemove', move);
+                            document.removeEventListener('mouseup', up);
+                        }
+                        document.addEventListener('mousemove', move);
+                        document.addEventListener('mouseup', up);
+                    } else if (rowHandle) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var r = parseInt(rowHandle.getAttribute('data-row'), 10);
+                        if (isNaN(r)) return;
+                        var startY = e.clientY;
+                        var startH = hotInstance.getRowHeight(r) || 23;
+                        var numRows = hotInstance.countRows();
+                        var heights = [];
+                        for (var i = 0; i < numRows; i++) heights.push(hotInstance.getRowHeight(i) || 23);
+                        function move(e2) {
+                            var dy = e2.clientY - startY;
+                            var h = Math.max(20, startH + dy);
+                            heights[r] = h;
+                            hotInstance.updateSettings({ rowHeights: heights });
+                            startH = h;
+                            startY = e2.clientY;
+                        }
+                        function up() {
+                            document.removeEventListener('mousemove', move);
+                            document.removeEventListener('mouseup', up);
+                        }
+                        document.addEventListener('mousemove', move);
+                        document.addEventListener('mouseup', up);
+                    }
+                }, true);
+            })();
+            console.log('Handsontable 병합 적용 완료. 병합 개수:', mergeCells.length);
+            if (mergeCells.length > 0) {
+                console.log('병합 상세:', mergeCells);
+            }
+            document.getElementById('btnSave').disabled = false;
+            
+            /* ★★★★ 검색 기능 추가 ★★★★ */
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.oninput = function() {
+                    const query = (this.value || '').trim().toLowerCase();
+                    if (!query) {
+                        hotInstance.loadData(bodyRows);
+                        hotInstance.updateSettings({ mergeCells: mergeCells });
+                        syncParsedDataFromGrid();
+                        return;
+                    }
+                    const headerRows = parsedData.headerRows;
+                    const dataRows = parsedData.dataRows;
+                    const headerStyles = parsedData.headerStyles;
+                    const dataStyles = parsedData.dataStyles;
+                    
+                    const matched = dataRows
+                        .map((row, idx) => ({ row, idx }))
+                        .filter(({ row }) => row.some(cell => String(cell ?? '').toLowerCase().includes(query)));
+                    
+                    const filteredRows = [...headerRows, ...matched.map(({ row }) => row)];
+                    const filteredStyles = [...headerStyles, ...matched.map(({ idx }) => dataStyles[idx])];
+                    
+                    parsedData.bodyRows = filteredRows;
+                    parsedData.bodyStyles = filteredStyles;
+                    
+                    var headerOnlyMergeCells = (mergeCells || []).filter(function(m) { return m.row < 2; });
+                    hotInstance.loadData(filteredRows);
+                    hotInstance.updateSettings({ mergeCells: headerOnlyMergeCells });
+                    syncParsedDataFromGrid();
+                };
+            }
+        }
+
+        function syncParsedDataFromGrid() {
+            if (!hotInstance || !parsedData) return;
+            var allData = hotInstance.getData();
+            if (parsedData.headerRows && parsedData.dataRows) {
+                parsedData.bodyRows = allData;
+            } else {
+                parsedData.bodyRows = allData;
+            }
+        }
+
+        async function saveToDb() {
+            const yearSelect = document.getElementById('yearSelect');
+            const year = yearSelect?.value;
+            if (!year) {
+                alert('저장할 연도를 선택해주세요.');
+                return;
+            }
+            if (!parsedData || !parsedData.bodyRows?.length) {
+                alert('저장할 데이터가 없습니다.');
+                return;
+            }
+            syncParsedDataFromGrid();
+            try {
+                const res = await fetch('/api/order-book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        headers: [],
+                        rows: parsedData.bodyRows,
+                        mergeCells: parsedData.mergeCells || [],
+                        bodyStyles: parsedData.bodyStyles || [],
+                        year: parseInt(year)
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || '저장 실패');
+                alert('DB에 저장되었습니다. (행 수: ' + data.rowCount + ')');
+                if (parsedData) parsedData.dataSource = 'api';
+            } catch (err) {
+                alert('저장 실패: ' + err.message);
+            }
+        }
+        async function loadDataByYear(year) {
+            if (!year) return;
+            try {
+                const res = await fetch(`/api/order-book?year=${year}`);
+                const data = await res.json();
+                if (data.rows && data.rows.length > 0) {
+                    parsedData = {
+                        bodyRows: data.rows,
+                        bodyStyles: data.bodyStyles || [],
+                        mergeCells: data.mergeCells || [],
+                        dataSource: 'api'
+                    };
+                    buildEditableGrid();
+                } else {
+                    parsedData = null;
+                    if (hotInstance) {
+                        hotInstance.destroy();
+                        hotInstance = null;
+                    }
+                }
+            } catch (err) {
+                console.error('데이터 로드 실패:', err);
+            }
+        }
+
+        const yearSelectEl = document.getElementById('yearSelect');
+        if (yearSelectEl) {
+            yearSelectEl.addEventListener('change', (e) => {
+                const year = e.target.value ? parseInt(e.target.value) : null;
+                
+                if (parsedData && parsedData.dataSource === 'file') {
+                    return;  // 연도만 변경하고, 그리드는 그대로 유지 (저장 시 선택한 연도 사용)
+                }
+                loadDataByYear(year);
+            });
+        }
+
+
+
+        document.getElementById('excelFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                parsedData = await parseExcelFile(file);
+                parsedData.dataSource = 'file';  
+                buildEditableGrid();
+            } catch (err) {
+                alert('엑셀 파일 읽기 실패: ' + err.message);
+            }
+        });
+
+        document.getElementById('btnSave').addEventListener('click', saveToDb);
+
+        const btnAddRow = document.getElementById('btnAddRow');
+        if (btnAddRow) {
+            btnAddRow.addEventListener('click', () => {
+                if (!parsedData || !hotInstance) {
+                    alert('먼저 엑셀 파일을 업로드해주세요.');
+                    return;
+                }
+                hotInstance.alter('insert_row', hotInstance.countRows());
+                document.getElementById('btnSave').disabled = false;
+                syncParsedDataFromGrid();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+            try {
+                const res = await fetch('/api/order-book');
+                const data = await res.json();
+                const yearSelect = document.getElementById('yearSelect');
+                if (data.year && yearSelect) yearSelect.value = data.year;
+                if (data.rows && data.rows.length > 0) {
+                    parsedData = {
+                        bodyRows: data.rows,
+                        bodyStyles: data.bodyStyles || [],
+                        mergeCells: data.mergeCells || [],
+                        dataSource: 'api'
+                    };
+                    buildEditableGrid();
+                }
+            } catch (err) {
+                console.error('초기 데이터 로드 실패:', err);
+            }
+        });
+    </script>
+</body>
+</html>

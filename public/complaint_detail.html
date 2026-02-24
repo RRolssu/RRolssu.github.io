@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container mt-4 mb-5">
+        <h3>클레임 상세</h3>
+        
+        <!-- 기본 정보 -->
+        <div class="basic-info-header rounded-top">
+            <i class="bi bi-info-circle me-2"></i>기본 정보
+        </div>
+        <div class="bg-white border border-top-0 p-4 mb-4 rounded-bottom shadow-sm">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>클레임 번호:</strong> <span id="info_no">Loading...</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>프로젝트:</strong> <span id="info_project">Loading...</span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>고객사:</strong> <span id="info_customer">Loading...</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>접수일:</strong> <span id="info_date">Loading...</span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>담당자:</strong> <span id="info_manager">Loading...</span>
+                </div>
+                
+            </div>
+            <div class="mb-3">
+                <strong>제목:</strong> <span id="info_title">Loading...</span>
+            </div>
+            <div class="mb-3">
+                <strong>상세 내용:</strong>
+                <div id="info_description" class="mt-2 p-3 bg-light rounded">Loading...</div>
+            </div>
+            <div class="mb-3">
+                <strong>고객 요청사항:</strong>
+                <div id="info_request" class="mt-2 p-3 bg-light rounded">Loading...</div>
+            </div>
+        </div>
+
+        <!-- ISO 9001 CAPA 정보 -->
+        <!-- <div class="card mb-4">
+            <div class="card-header bg-light">
+                ISO 9001 CAPA 정보
+                <button class="btn btn-sm btn-outline-secondary float-end" onclick="saveCAPA()">저장</button>
+            </div>
+            <div class="card-body">
+                <form id="capaForm">
+                    <div class="mb-3">
+                        <label class="form-label">근본 원인 분석 (Root Cause)</label>
+                        <textarea class="form-control" name="root_cause" id="input_root_cause" rows="2" style="overflow:hidden; resize:none;"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">시정 조치 (Corrective Action)</label>
+                        <textarea class="form-control" name="corrective_action" id="input_corrective_action" rows="2" style="overflow:hidden; resize:none;"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">예방 조치 (Preventive Action)</label>
+                        <textarea class="form-control" name="preventive_action" id="input_preventive_action" rows="2" style="overflow:hidden; resize:none;"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div> -->
+
+        <!-- 처리 이력 -->
+        <div class="action-header rounded-top">
+            처리 이력 (<span id="actionCount">0</span>건)
+        </div>
+        <div class="bg-white border border-top-0 p-4 mb-4 rounded-bottom shadow-sm">
+            
+
+            <div class="timeline" id="actionTimeline">
+                <!-- Actions loaded here -->
+            </div>
+        </div>
+
+        <!-- 새 조치 추가 -->
+        <div class="new-action-header rounded-top">
+            새 조치 추가
+        </div>
+        <div class="bg-white border border-top-0 p-4 rounded-bottom shadow-sm">
+            <form id="addActionForm">
+                <div class="mb-3">
+                    <label class="form-label">조치 유형 *</label>
+                    <input type="text" class="form-control" name="action_type" placeholder="접수, 분석, 조치 등" required>
+                </div>
+                <!-- <div class="mb-3">
+                    <label class="form-label">상태 변경 *</label>
+                    <input type="text" class="form-control" name="status_change" placeholder="예: 접수 -> 진행중" required>
+                </div> -->
+                <div class="mb-3">
+                    <label class="form-label">담당자 지정</label>
+                    <input type="text" class="form-control" name="manager_name" placeholder="담당자 이름">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">조치 제목 *</label>
+                    <input type="text" class="form-control" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">조치 내용 *</label>
+                    <textarea class="form-control" name="content" id="actionContent" rows="4" required></textarea>
+                    <small class="text-muted">이미지는 클립보드에서 직접 붙여넣기(Ctrl+V) 가능합니다.</small>  <!-- ★★★★ 추가 ★★★★ -->
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">예정 완료일</label>
+                        <input type="date" class="form-control" name="expected_date">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">실제 완료일</label>
+                        <input type="date" class="form-control" name="actual_date">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">투입 공수 (시간)</label>
+                        <input type="number" step="0.1" class="form-control" name="man_hours">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">소요 비용 (원)</label>
+                        <input type="number" class="form-control" name="cost">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">첨부파일</label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="attachments" name="attachments" multiple>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-warning fw-bold">조치 추가</button>
+            </form>
+        </div>
+        
+        <div class="mt-3">
+            <a href="/complaints.html" class="btn btn-secondary">목록으로</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const complaintId = urlParams.get('id');
+
+        if (!complaintId) {
+            alert('잘못된 접근입니다.');
+            location.href = '/complaints.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ★★★★ 추가: 로그인 체크 ★★★★
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+            
+            // ★★★★ 추가: 조치 내용 텍스트 영역에 이미지 붙여넣기 기능 ★★★★
+            const actionContentTextarea = document.getElementById('actionContent');
+            if (actionContentTextarea) {
+                actionContentTextarea.addEventListener('paste', async (e) => {
+                    const items = e.clipboardData.items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            e.preventDefault();
+                            const blob = items[i].getAsFile();
+                            
+                            // FormData로 이미지 업로드
+                            const formData = new FormData();
+                            formData.append('image', blob);
+                            
+                            try {
+                                const res = await fetch('/api/receptions/upload-image', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const result = await res.json();
+                                
+                                if (res.ok && result.url) {
+                                    // 텍스트 영역에 이미지 URL 추가
+                                    const cursorPos = actionContentTextarea.selectionStart;
+                                    const textBefore = actionContentTextarea.value.substring(0, cursorPos);
+                                    const textAfter = actionContentTextarea.value.substring(cursorPos);
+                                    actionContentTextarea.value = textBefore + `\n[이미지: ${result.url}]\n` + textAfter;
+                                    
+                                    // 커서 위치 조정
+                                    const newPos = cursorPos + `\n[이미지: ${result.url}]\n`.length;
+                                    actionContentTextarea.setSelectionRange(newPos, newPos);
+                                    actionContentTextarea.focus();
+                                } else {
+                                    alert('이미지 업로드에 실패했습니다.');
+                                }
+                            } catch (err) {
+                                console.error('이미지 업로드 실패:', err);
+                                alert('이미지 업로드에 실패했습니다.');
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+            
+            loadComplaintDetails();
+            loadActions();
+        });
+
+        async function loadComplaintDetails() {
+            try {
+                console.log('Loading complaint details for ID:', complaintId);
+                const res = await fetch(`/api/complaints/${complaintId}`);
+                if (!res.ok) throw new Error('Failed to fetch');
+                const data = await res.json();
+                
+                console.log('Received data:', data); // 데이터 확인용
+                
+                // 모든 필드 설정
+                document.getElementById('info_no').innerText = data.complaint_no || 'N/A';
+                document.getElementById('info_project').innerText = data.project_name || 'N/A';
+                document.getElementById('info_customer').innerText = data.customer_name || 'N/A';
+                document.getElementById('info_date').innerText = data.received_date || 'N/A';
+                document.getElementById('info_title').innerText = data.title || 'N/A';
+                document.getElementById('info_manager').innerText = data.manager_name || '미지정';
+                document.getElementById('info_description').innerText = data.description || '-';
+                document.getElementById('info_request').innerText = data.customer_request || '-';
+                
+                // 상태 표시 (필요시)
+                // document.getElementById('info_status').innerText = data.status || '접수';
+                
+            } catch (err) {
+                console.error('Error loading complaint details:', err);
+                alert('데이터를 불러오는데 실패했습니다.');
+            }
+        }
+
+        async function loadActions() {
+            try {
+                const res = await fetch(`/api/complaints/${complaintId}/actions`);
+                const actions = await res.json();
+                
+                document.getElementById('actionCount').innerText = actions.length;
+                const timeline = document.getElementById('actionTimeline');
+                timeline.innerHTML = '';
+
+                // 현재 로그인한 사용자 정보 가져오기
+                const currentUser = getCurrentUser();
+                console.log('Current User:', currentUser);
+
+                for (const action of actions) {
+                    let attachmentHtml = '';
+
+                    // ★★★★ 다중 파일 처리 ★★★★
+                    if (action.attachment_path) {
+                        try {
+                            // JSON 배열로 파싱 시도
+                            const filePaths = JSON.parse(action.attachment_path);
+                            
+                            if (Array.isArray(filePaths) && filePaths.length > 0) {
+                                attachmentHtml = '<div class="mt-3"><p class="mb-2 fw-bold text-muted small"><i class="bi bi-paperclip"></i> 첨부파일 (' + filePaths.length + '개)</p>';
+                                
+                                filePaths.forEach((filePath, idx) => {
+                                    const safePath = filePath.replace(/\\/g, '/');
+                                    const fileName = safePath.split('/').pop();
+                                    const fileExt = fileName.split('.').pop().toLowerCase();
+                                    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+
+                                    if (isImage) {
+                                        attachmentHtml += `
+                                            <div class="mb-2">
+                                                <img src="${safePath}" alt="첨부 이미지 ${idx+1}" class="img-fluid rounded border" style="max-width: 200px; max-height: 200px;">
+                                                <div><a href="${safePath}" target="_blank" class="small text-decoration-none">원본 보기</a></div>
+                                            </div>`;
+                                    } else {
+                                        attachmentHtml += `
+                                            <div class="mb-1">
+                                                <i class="bi bi-file-earmark"></i> 
+                                                <a href="${safePath}" target="_blank" class="text-decoration-none">${fileName}</a>
+                                            </div>`;
+                                    }
+                                });
+                                
+                                attachmentHtml += '</div>';
+                            }
+                        } catch (e) {
+                            // 기존 단일 파일 형식 처리 (하위 호환)
+                            const safePath = action.attachment_path.replace(/\\/g, '/');
+                            const fileName = safePath.split('/').pop();
+                            const fileExt = fileName.split('.').pop().toLowerCase();
+                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+
+                            if (isImage) {
+                                attachmentHtml = `
+                                    <div class="mt-3">
+                                        <p class="mb-1 fw-bold text-muted small"><i class="bi bi-image"></i> 첨부 이미지</p>
+                                        <img src="${safePath}" alt="첨부 이미지" class="img-fluid rounded border" style="max-width: 300px; max-height: 300px;">
+                                        <p class="card-text">${action.content.replace(/\[이미지:\s*([^\]]+)\]/g, (match, url) => {
+                                            const imageUrl = url.trim();
+                                            return `<div class="my-2"><img src="${imageUrl}" alt="첨부 이미지" class="img-fluid rounded border" style="max-width: 500px; max-height: 300px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')"><br><small class="text-muted">클릭하여 원본 보기</small></div>`;
+                                        }).replace(/\n/g, '<br>')}</p>
+                                    </div>`;
+                            } else {
+                                attachmentHtml = `
+                                    <div class="mt-2">
+                                        <i class="bi bi-paperclip"></i> 
+                                        <a href="${safePath}" target="_blank" class="text-decoration-none">첨부파일: ${fileName}</a>
+                                    </div>`;
+                            }
+                        }
+                    }
+
+                    // ★★★★ 결재 정보 가져오기 ★★★★
+                    let approvalHtml = '';
+                    let approvalButtons = '';
+                    try {
+                        const approvalRes = await fetch(`/api/complaints/${complaintId}/actions/${action.id}/approvals`);
+                        if (approvalRes.ok) {
+                            const approvals = await approvalRes.json();
+                            console.log('Approvals for action', action.id, ':', approvals); // ★★★★ 디버깅 추가 ★★★★
+                            
+                            approvalHtml = '<div class="mt-3 p-3 bg-light rounded">';
+                            approvalHtml += '<p class="mb-2 fw-bold"><i class="bi bi-check-circle"></i> 결재 상태</p>';
+                            
+                            // 팀장 결재 (1단계)
+                            const deptApproval = approvals.find(a => a.approval_level === 1);
+                            if (deptApproval) {
+                                console.log('Dept Approval:', deptApproval); // ★★★★ 디버깅 추가 ★★★★
+                                console.log('Conditions check:', {
+                                    status: deptApproval.status === 'pending',
+                                    currentUser: !!currentUser,
+                                    isAdmin: currentUser?.is_admin,
+                                    approverMatch: deptApproval.approver_id == currentUser?.id
+                                }); // ★★★★ 디버깅 추가 ★★★★
+                                
+                                const deptStatusClass = deptApproval.status === 'approved' ? 'success' : 
+                                                        deptApproval.status === 'rejected' ? 'danger' : 'warning';
+                                const deptStatusText = deptApproval.status === 'approved' ? '승인' : 
+                                                        deptApproval.status === 'rejected' ? '반려' : '대기중';
+                                approvalHtml += `<div class="mb-2">
+                                    <span class="badge bg-${deptStatusClass}">팀장 결재: ${deptStatusText}</span>
+                                    <small class="text-muted ms-2">${deptApproval.approver_name || ''}</small>
+                                    ${deptApproval.approved_at ? `<br><small class="text-muted">${new Date(deptApproval.approved_at).toLocaleString('ko-KR')}</small>` : ''}
+                                    ${deptApproval.comment ? `<br><small class="text-muted">의견: ${deptApproval.comment}</small>` : ''}
+                                </div>`;
+                                
+                                // 현재 사용자가 팀장이고 결재 대기중이면 결재 버튼 표시
+                                if (deptApproval.status === 'pending' && currentUser && currentUser.is_admin && deptApproval.approver_id == currentUser.id) {
+                                    console.log('Approval buttons should be shown!'); // ★★★★ 디버깅 추가 ★★★★
+                                    approvalButtons += `<button class="btn btn-sm btn-success me-1" onclick="approveAction(${action.id}, 1, 'approved')">승인</button>`;
+                                    approvalButtons += `<button class="btn btn-sm btn-danger" onclick="approveAction(${action.id}, 1, 'rejected')">반려</button>`;
+                                }
+                            }
+                            
+                            // 대표이사 결재 (2단계) - 팀장 결재 승인된 경우에만 표시
+                            const ceoApproval = approvals.find(a => a.approval_level === 2);
+                            if (ceoApproval && deptApproval && deptApproval.status === 'approved') {
+                                const ceoStatusClass = ceoApproval.status === 'approved' ? 'success' : 
+                                                    ceoApproval.status === 'rejected' ? 'danger' : 'warning';
+                                const ceoStatusText = ceoApproval.status === 'approved' ? '승인' : 
+                                                    ceoApproval.status === 'rejected' ? '반려' : '대기중';
+                                approvalHtml += `<div class="mb-2">
+                                    <span class="badge bg-${ceoStatusClass}">대표이사 결재: ${ceoStatusText}</span>
+                                    <small class="text-muted ms-2">${ceoApproval.approver_name || ''}</small>
+                                    ${ceoApproval.approved_at ? `<br><small class="text-muted">${new Date(ceoApproval.approved_at).toLocaleString('ko-KR')}</small>` : ''}
+                                    ${ceoApproval.comment ? `<br><small class="text-muted">의견: ${ceoApproval.comment}</small>` : ''}
+                                </div>`;
+                                
+                                // 현재 사용자가 대표이사이고 결재 대기중이면 결재 버튼 표시
+                                if (ceoApproval.status === 'pending' && currentUser && currentUser.is_superadmin && ceoApproval.approver_id == currentUser.id) {
+                                    approvalButtons += `<button class="btn btn-sm btn-success me-1" onclick="approveAction(${action.id}, 2, 'approved')">승인</button>`;
+                                    approvalButtons += `<button class="btn btn-sm btn-danger" onclick="approveAction(${action.id}, 2, 'rejected')">반려</button>`;
+                                }
+                            }
+                            
+                            approvalHtml += '</div>';
+                            
+                            // 결재 버튼이 있으면 추가
+                            if (approvalButtons) {
+                                console.log('Adding approval buttons to HTML'); // ★★★★ 디버깅 추가 ★★★★
+                                approvalHtml += `<div class="mt-2">${approvalButtons}</div>`;
+                            }
+                        }
+                    } catch (approvalErr) {
+                        console.error('결재 정보 로드 실패:', approvalErr);
+                    }
+
+                    const html = `
+                        <div class="timeline-item">
+                            <div class="card">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                    <div class="text-truncate me-auto">
+                                        <span class="fw-bold">#${actions.indexOf(action) + 1} - ${action.title}</span>
+                                        <span class="badge bg-secondary ms-2">${action.action_type}</span>
+                                    </div>
+                                    <div class="flex-shrink-0 ms-3">
+                                        <small class="text-muted me-3">${action.created_at.substring(0, 16)}</small>
+                                        <button class="btn btn-sm btn-warning me-2" onclick="editAction(${action.id})">수정</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteAction(${action.id})">삭제</button>
+                                    </div>
+                                </div>
+                            <div class="card-body py-2">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><small class="text-muted">조치번호: ${action.action_no || '-'}</small></p>
+                                            <p class="mb-1"><small class="text-muted">예정 완료일: ${action.expected_date ? new Date(action.expected_date).toLocaleDateString('ko-KR') : '-'}</small></p>
+                                            
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><small class="text-muted">처리자: ${action.manager_name || '-'}</small></p>
+                                            <p class="mb-1"><small class="text-muted">실제 완료일: ${action.actual_date ? new Date(action.actual_date).toLocaleDateString('ko-KR') : '-'}</small></p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><small class="text-muted">투입 공수: ${action.man_hours ? action.man_hours + '시간' : '-'}</small></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><small class="text-muted">소요 비용: ${action.cost ? new Intl.NumberFormat('ko-KR').format(action.cost) + '원' : '-'}</small></p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-2">
+                                    <p class="card-text">${action.content.replace(/\[이미지:\s*([^\]]+)\]/g, (match, url) => {
+                                        const imageUrl = url.trim();
+                                        return `<div class="my-2"><img src="${imageUrl}" alt="첨부 이미지" class="img-fluid rounded border" style="max-width: 500px; max-height: 300px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')"><br><small class="text-muted">클릭하여 원본 보기</small></div>`;
+                                    }).replace(/\n/g, '<br>')}</p>
+                                    ${attachmentHtml}
+                                    ${approvalHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    timeline.innerHTML += html;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        function editAction(actionId) {
+            // 조치 정보 가져오기
+            fetch(`/api/complaints/${complaintId}/actions`)
+                .then(res => res.json())
+                .then(actions => {
+                    const action = actions.find(a => a.id === actionId);
+                    if (!action) {
+                        alert('조치 이력을 찾을 수 없습니다.');
+                        return;
+                    }
+                    
+                    // 수정 모달 생성 및 표시
+                    const modalHtml = `
+                        <div class="modal fade" id="editActionModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-warning text-dark">
+                                        <h5 class="modal-title">조치 이력 수정</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="editActionForm">
+                                            <div class="mb-3">
+                                                <label class="form-label">조치 유형 *</label>
+                                                <input type="text" class="form-control" name="action_type" value="${action.action_type || ''}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">담당자 지정</label>
+                                                <input type="text" class="form-control" name="manager_name" value="${action.manager_name || ''}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">조치 제목 *</label>
+                                                <input type="text" class="form-control" name="title" value="${action.title || ''}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">조치 내용 *</label>
+                                                <textarea class="form-control" name="content" rows="4" required>${action.content || ''}</textarea>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">예정 완료일</label>
+                                                    <input type="date" class="form-control" name="expected_date" value="${action.expected_date ? action.expected_date.split('T')[0] : ''}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">실제 완료일</label>
+                                                    <input type="date" class="form-control" name="actual_date" value="${action.actual_date ? action.actual_date.split('T')[0] : ''}">
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">투입 공수 (시간)</label>
+                                                    <input type="number" step="0.1" class="form-control" name="man_hours" value="${action.man_hours || ''}">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">소요 비용 (원)</label>
+                                                    <input type="number" class="form-control" name="cost" value="${action.cost || ''}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">추가 첨부파일</label>
+                                                <input type="file" class="form-control" name="attachments" multiple>
+                                                <small class="text-muted">기존 파일에 추가됩니다.</small>
+                                            </div>
+                                            <button type="submit" class="btn btn-warning w-100">수정 저장</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const existingModal = document.getElementById('editActionModal');
+                    if (existingModal) existingModal.remove();
+                    
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    displayActionAttachments(action);
+                    
+                    document.getElementById('editActionForm').onsubmit = async (e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+
+                        if (actionFilesToRemove.length > 0) {
+                            formData.append('filesToRemove', JSON.stringify(actionFilesToRemove));
+                        }
+
+                        try {
+                            const res = await fetch(`/api/complaints/${complaintId}/actions/${actionId}`, {
+                                method: 'PUT',
+                                body: formData
+                            });
+                            
+                            if (res.ok) {
+                                alert('조치 이력이 수정되었습니다.');
+                                bootstrap.Modal.getInstance(document.getElementById('editActionModal')).hide();
+                                loadActions();
+                            } else {
+                                const result = await res.json();
+                                alert(result.error || '수정에 실패했습니다.');
+                            }
+                        } catch (err) {
+                            console.error('조치 이력 수정 실패:', err);
+                            alert('수정에 실패했습니다.');
+                        }
+                    };
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('editActionModal'));
+                    modal.show();
+                })
+                .catch(err => {
+                    console.error('조치 이력 로드 실패:', err);
+                    alert('조치 이력을 불러오는데 실패했습니다.');
+                });
+        }
+        // async function saveCAPA() {
+        //     const data = {
+        //         root_cause: document.getElementById('input_root_cause').value,
+        //         corrective_action: document.getElementById('input_corrective_action').value,
+        //         preventive_action: document.getElementById('input_preventive_action').value
+        //     };
+
+        //     await fetch(`/api/complaints/${complaintId}/capa`, {
+        //         method: 'PUT',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify(data)
+        //     });
+        //     alert('저장되었습니다.');
+        // }
+        let actionFilesToRemove = [];
+
+        function displayActionAttachments(action) {
+            let container = document.getElementById('currentActionAttachments');
+            if (!container) {
+                // 컨테이너가 없으면 생성
+                const attachmentsDiv = document.createElement('div');
+                attachmentsDiv.className = 'mb-3';
+                attachmentsDiv.innerHTML = `
+                    <label class="form-label">기존 첨부파일</label>
+                    <div id="currentActionAttachments" class="mb-2 p-2 border rounded" style="max-height: 200px; overflow-y: auto;"></div>
+                `;
+                const form = document.getElementById('editActionForm');
+                const fileInput = form.querySelector('input[name="attachments"]').parentElement;
+                fileInput.parentElement.insertBefore(attachmentsDiv, fileInput);
+            }
+            
+            container = document.getElementById('currentActionAttachments');
+            actionFilesToRemove = [];
+            
+            if (!action?.attachment_path) {
+                container.innerHTML = '<p class="text-muted mb-0 small">기존 첨부파일이 없습니다.</p>';
+                return;
+            }
+            
+            try {
+                let files = JSON.parse(action.attachment_path);
+                if (!Array.isArray(files)) {
+                    if (typeof files === 'object' && files !== null) {
+                        files = [files];
+                    } else if (typeof files === 'string') {
+                        files = [files];
+                    } else {
+                        files = [];
+                    }
+                }
+                
+                const displayFiles = files.filter(fileItem => {
+                    if (typeof fileItem === 'string') {
+                        return !actionFilesToRemove.includes(fileItem);
+                    } else if (fileItem && typeof fileItem === 'object') {
+                        const filePath = fileItem.path || fileItem.filename || '';
+                        return filePath && !actionFilesToRemove.includes(filePath) && !actionFilesToRemove.includes(fileItem);
+                    }
+                    return false;
+                });
+                
+                if (displayFiles.length === 0) {
+                    container.innerHTML = '<p class="text-muted mb-0 small">기존 첨부파일이 없습니다.</p>';
+                    return;
+                }
+                
+                container.innerHTML = displayFiles.map((fileItem, index) => {
+                    let filePath, displayName;
+                    
+                    if (typeof fileItem === 'string') {
+                        filePath = fileItem;
+                        displayName = filePath.split('/').pop() || '파일';
+                    } else if (fileItem && typeof fileItem === 'object') {
+                        filePath = fileItem.path || fileItem.filename || '';
+                        displayName = fileItem.originalname || fileItem.filename || filePath.split('/').pop() || '파일';
+                    } else {
+                        return '';
+                    }
+                    
+                    const safePath = filePath.replace(/\\/g, '/');
+                    const fileData = JSON.stringify(fileItem).replace(/"/g, '&quot;');
+                    
+                    return `
+                        <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                            <i class="bi bi-file-earmark me-2 text-primary"></i>
+                            <a href="${safePath}" target="_blank" class="text-decoration-none flex-grow-1">${displayName}</a>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeActionAttachment('${fileData}', this)">
+                                <i class="bi bi-trash"></i> 삭제
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('첨부파일 표시 오류:', e);
+                container.innerHTML = '<p class="text-danger mb-0 small">첨부파일 정보를 불러올 수 없습니다.</p>';
+            }
+        }
+        function removeActionAttachment(fileItemStr, btn) {
+            try {
+                const fileItem = JSON.parse(fileItemStr.replace(/&quot;/g, '"'));
+                if (!confirm('이 파일을 삭제하시겠습니까?\n삭제된 파일은 수정 저장 시 제거됩니다.')) return;
+                
+                if (typeof fileItem === 'string') {
+                    actionFilesToRemove.push(fileItem);
+                } else if (fileItem && typeof fileItem === 'object') {
+                    const filePath = fileItem.path || fileItem.filename || '';
+                    if (filePath) {
+                        actionFilesToRemove.push(filePath);
+                    }
+                    actionFilesToRemove.push(fileItem);
+                }
+                
+                btn.closest('.d-flex').remove();
+            } catch (e) {
+                console.error('파일 제거 오류:', e);
+                alert('파일 제거 중 오류가 발생했습니다.');
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('ko-KR');
+        }
+
+        function formatCurrency(amount) {
+            if (!amount) return '-';
+            return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+        }
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; // 높이 초기화
+            textarea.style.height = (textarea.scrollHeight) + 'px'; // 내용 높이에 맞춰 늘림
+        }
+
+        document.getElementById('addActionForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            // FormData 객체 그대로 사용 (JSON 변환 X) 
+            const formData = new FormData(e.target);
+            
+            // ★★★★ 수정: 조치 번호 순서대로 증가 (1, 2, 3...) ★★★★
+            // 현재 조치 이력 수를 가져와서 +1
+            const actionsRes = await fetch(`/api/complaints/${complaintId}/actions`);
+            const actions = await actionsRes.json();
+            const nextSeq = actions.length + 1;
+            
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+            const actionNo = `CP-${dateStr}-${nextSeq}`;
+            formData.append('action_no', actionNo);
+
+            // 파일 전송을 위해 headers의 Content-Type 제거 (브라우저가 자동으로 설정함) 
+            await fetch(`/api/complaints/${complaintId}/actions`, {
+                method: 'POST',
+                body: formData // JSON.stringify 하지 않음
+            });
+            
+            e.target.reset();
+            // 파일 input 초기화가 안 될 수 있으므로 명시적 초기화
+            document.getElementById('attachments').value = ''; 
+            
+            loadActions();
+            loadComplaintDetails();
+            alert('조치가 추가되었습니다.');
+        };
+        //승인 반려
+        async function approveAction(actionId, approvalLevel, status) {
+            const comment = status === 'rejected' ? prompt('반려 사유를 입력하세요:') : prompt('승인 의견을 입력하세요 (선택사항):');
+            if (status === 'rejected' && !comment) {
+                alert('반려 시에는 사유를 입력해야 합니다.');
+                return;
+            }
+            
+            try {
+                // ★★★★ JWT 토큰 가져오기 ★★★★
+                const currentUser = getCurrentUser();
+                const token = localStorage.getItem('jwt_token'); // 또는 다른 방식으로 토큰 저장
+                
+                if (!token) {
+                    alert('로그인이 필요합니다. 다시 로그인해주세요.');
+                    location.href = '/login.html';
+                    return;
+                }
+
+                const res = await fetch(`/api/complaints/${complaintId}/actions/${actionId}/approve`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // ★★★★ JWT 토큰 헤더 추가 ★★★★
+                    },
+                    body: JSON.stringify({ 
+                        approval_level: approvalLevel, 
+                        status, 
+                        comment: comment || null 
+                    })
+                });
+                
+                if (res.ok) {
+                    alert(status === 'approved' ? '결재가 승인되었습니다.' : '결재가 반려되었습니다.');
+                    loadActions(); // 목록 새로고침
+                } else {
+                    const result = await res.json();
+                    alert(result.error || '결재 처리에 실패했습니다.');
+                }
+            } catch (err) {
+                console.error('결재 처리 실패:', err);
+                alert('결재 처리에 실패했습니다.');
+            }
+        }
+
+        async function deleteAction(actionId) {
+            if (!confirm('정말 이 조치 이력을 삭제하시겠습니까?')) return;
+            
+            await fetch(`/api/complaints/${complaintId}/actions/${actionId}`, { method: 'DELETE' });
+            loadActions();
+            alert('조치 이력이 삭제되었습니다.');
+        };
+    </script>
+</body>
+<style>
+    .basic-info-header, .action-header, .new-action-header {
+        background: linear-gradient(135deg, #667eea 0%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+    }
+    </style>
+</html>
+
+
+

@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build / temp
+dist/
+build/
+tmp/
+temp/
+*.tmp
+
+*.xlsx
+*.pdf
+*.pptx
+*.lnk
+uploads/
+2024*/
+2025*/
+5.*
+*.sql
+!database/schema.sql
+complain_backup.sql
+convert_pdf_to_jpg.py
+readme

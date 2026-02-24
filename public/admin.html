@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 상단 네비게이션 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-dark py-3" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="logoblack.svg" alt="로고" height="30">
+            </a>
+            <div class="navbar-brand d-flex align-items-center text-white">
+                <span class="ms-2">관리자 페이지 (Admin)</span>
+            </div>
+            <div class="d-flex">
+                <a href="/" class="btn btn-outline-light btn-sm">메인으로 돌아가기</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!--  수정: 탭 순서 변경 - 프로젝트 > 컴플레인 > 고객사 > 구성원  -->
+        <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="project-tab" data-bs-toggle="tab" data-bs-target="#project-pane" type="button">프로젝트 관리</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="complaint-tab" data-bs-toggle="tab" data-bs-target="#complaint-pane" type="button">컴플레인 관리</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer-pane" type="button">고객사 관리</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="employee-tab" data-bs-toggle="tab" data-bs-target="#employee-pane" type="button">
+                    구성원 관리
+                </button>
+            </li>
+        </ul>
+
+        <!--  수정: 탭 컨텐츠 순서 변경 - 프로젝트 > 컴플레인 > 고객사 > 구성원  -->
+        <div class="tab-content" id="adminTabContent">
+            
+            <!-- 1. 프로젝트 관리 탭 (첫 번째, active) -->
+            <div class="tab-pane fade show active" id="project-pane">
+                <div class="d-flex justify-content-between mb-3">
+                    <h4>프로젝트 목록</h4>
+                    <button class="btn btn-primary" onclick="openProjectModal()">
+                        <i class="bi bi-plus-lg"></i> 프로젝트 등록
+                    </button>
+                </div>
+                <div class="table-responsive bg-white border rounded">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>코드</th><th>프로젝트명</th><th>고객사</th><th>상태</th><th>관리</th></tr>
+                        </thead>
+                        <tbody id="adminProjectBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. 컴플레인 관리 탭 -->
+            <div class="tab-pane fade" id="complaint-pane">
+                <div class="d-flex justify-content-between mb-3">
+                    <h4>컴플레인 목록</h4>
+                    <!-- 등록은 일반 페이지에서 가능 -->
+                </div>
+                <div class="table-responsive bg-white border rounded">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>번호</th><th>프로젝트</th><th>제목</th><th>접수일</th><th>관리</th></tr>
+                        </thead>
+                        <tbody id="adminComplaintBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. 고객사 관리 탭 -->
+            <div class="tab-pane fade" id="customer-pane">
+                <div class="d-flex justify-content-between mb-3">
+                    <h4>고객사 목록</h4>
+                    <button class="btn btn-primary" onclick="openCustomerModal()">
+                        <i class="bi bi-plus-lg"></i> 고객사 등록
+                    </button>
+                </div>
+                <div class="table-responsive bg-white border rounded">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>회사명</th>
+                                <th>사업자등록번호</th>
+                                <th>주소</th>
+                                <th>설립일</th>
+                                <th>대표자명</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminCustomerBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. 구성원 관리 탭 -->
+            <div class="tab-pane fade" id="employee-pane">
+                <div class="d-flex justify-content-between mb-3">
+                    <h4><i class="bi bi-people-fill me-2"></i>구성원 목록</h4>
+                    <button class="btn btn-primary" onclick="openEmployeeModal()">
+                        <i class="bi bi-plus-lg"></i> 구성원 등록
+                    </button>
+                </div>
+                
+                <!-- 부서별 필터 -->
+                <div class="mb-3">
+                    <select class="form-select w-auto d-inline-block" id="deptFilter" onchange="filterEmployees()">
+                        <option value="">전체 부서</option>
+                        <option value="경영지원팀">경영지원팀</option>
+                        <option value="기획팀">기획팀</option>
+                        <option value="기술지원팀">기술지원팀</option>
+                        <option value="생산기술팀">생산기술팀</option>
+                        <option value="품질관리팀">품질관리팀</option>
+                        <option value="소프트웨어개발팀">소프트웨어개발팀</option>
+                        <option value="하드웨어개발팀">하드웨어개발팀</option>
+                    </select>
+                    <input type="text" class="form-control w-auto d-inline-block ms-2" id="empSearchInput" placeholder="이름/이메일 검색" onkeyup="filterEmployees()">
+                </div>
+                
+                <div class="table-responsive bg-white border rounded">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>이메일 (ID)</th>
+                                <th>이름</th>
+                                <th>직급</th>
+                                <th>부서</th>
+                                <th>전화번호</th>
+                                <th>상태</th>
+                                <th>권한</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminEmployeeBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 영역 -->
+    <!-- Customer Modal -->
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="custModalTitle">고객사 저장</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customerForm">
+                        <input type="hidden" name="id" id="custId">
+                        
+                        <!--  추가: 고객사 코드  -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label>회사명</label>
+                                <input type="text" class="form-control" name="name" id="custName" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>사업자등록번호</label>
+                                <input type="text" class="form-control" name="business_registration_number" id="custRegNum">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>대표자명</label>
+                                <input type="text" class="form-control" name="representative_name" id="custRepName">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label>주소</label>
+                            <input type="text" class="form-control" name="address" id="custAddress">
+                        </div>
+                        <div class="mb-3">
+                            <label>설립일</label>
+                            <input type="date" class="form-control" name="establishment_date" id="custEstDate">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">저장</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="projModalTitle">프로젝트 저장</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <input type="hidden" name="id" id="projId">
+                        <div class="mb-3"><label>프로젝트 코드</label><input type="text" class="form-control" name="project_code" id="projCode" required></div>
+                        <div class="mb-3"><label>프로젝트명</label><input type="text" class="form-control" name="name" id="projName" required></div>
+                        <div class="mb-3">
+                            <label>고객사 <span class="text-danger">*</span></label>
+                            
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="customerSearchInput" placeholder="고객사 검색..." onkeyup="filterCustomerSelect()">
+                            </div>
+                            <select class="form-select" name="customer_id" id="projCustomer" required size="10" style="max-height: 200px; "onchange="updateCustomerSearchInput()">
+                                
+                            </select>
+                            <small class="text-muted">검색창에 입력하면 목록이 필터링됩니다.</small>
+                        </div>
+                        <div class="mb-3"><label>제품유형</label><input type="text" class="form-control" name="product_type" id="projType"></div>
+                        <div class="mb-3"><label>상태</label>
+                            <select class="form-select" name="status" id="projStatus">
+                                <option value="진행">진행</option><option value="완료">완료</option><option value="보류">보류</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">저장</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complaint Modal (New) -->
+    <div class="modal fade" id="complaintModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="compModalTitle">컴플레인 수정</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="complaintForm">
+                        <input type="hidden" name="id" id="compId">
+                        <div class="row">
+                            <!-- <div class="col-md-6 mb-3">
+                                <label class="form-label">컴플레인 번호</label>
+                                <input type="text" class="form-control" name="complaint_no" id="compNo" required>
+                            </div> -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">프로젝트</label>
+                                <select class="form-select" name="project_id" id="compProject" required></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">제목</label>
+                            <input type="text" class="form-control" name="title" id="compTitle" required>
+                        </div>
+                        <div class="row">
+                            <!-- <div class="col-md-4 mb-3">
+                                <label class="form-label">심각도</label>
+                                <select class="form-select" name="severity" id="compSeverity">
+                                    <option value="경미">경미</option>
+                                    <option value="중요">중요</option>
+                                    <option value="치명">치명</option>
+                                </select>
+                            </div> -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">담당자</label>
+                                <input type="text" class="form-control" name="manager_name" id="compManager">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">접수일</label>
+                                <input type="date" class="form-control" name="received_date" id="compDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">상세 내용</label>
+                            <textarea class="form-control" name="description" id="compDesc" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">고객 요청사항</label>
+                            <textarea class="form-control" name="customer_request" id="compReq" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">수정 완료</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--  추가: 구성원 관리 모달  -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="empModalTitle"><i class="bi bi-person-plus me-2"></i>구성원 등록</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="employeeForm">
+                        <input type="hidden" name="id" id="empId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">이메일 (로그인 ID) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="email" id="empEmail" required placeholder="예: hong@inter-mac.co.kr">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">이름 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" id="empName" required placeholder="예: 홍길동">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">직급</label>
+                                <select class="form-select" name="position" id="empPosition">
+                                    <option value="">선택하세요</option>
+                                    <option value="대표이사">대표이사</option>
+                                    <option value="전무">전무</option>
+                                    <option value="이사">이사</option>
+                                    <option value="실장">실장</option>
+                                    <option value="부장">부장</option>
+                                    <option value="차장">차장</option>
+                                    <option value="과장">과장</option>
+                                    <option value="대리">대리</option>
+                                    <option value="주임">주임</option>
+                                    <option value="사원">사원</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">부서</label>
+                                <select class="form-select" name="department" id="empDepartment">
+                                    <option value="">선택하세요</option>
+                                    <option value="경영지원팀">경영지원팀</option>
+                                    <option value="기획팀">기획팀</option>
+                                    <option value="기술지원팀">기술지원팀</option>
+                                    <option value="생산기술팀">생산기술팀</option>
+                                    <option value="품질관리팀">품질관리팀</option>
+                                    <option value="소프트웨어개발팀">소프트웨어개발팀</option>
+                                    <option value="하드웨어개발팀">하드웨어개발팀</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">전화번호</label>  
+                            <input type="text" class="form-control" name="phone" id="empPhone" placeholder="예: 010-1234-5678">
+                        </div>
+
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <label class="form-label mb-2">권한 설정</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="empIsActive" checked>
+                                <label class="form-check-label" for="empIsActive">활성 (로그인 가능)</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_admin" id="empIsAdmin">
+                                <label class="form-check-label" for="empIsAdmin">팀장 권한</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_superadmin" id="empIsSuperadmin">
+                                <label class="form-check-label" for="empIsSuperadmin">관리자 권한</label>
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            신규 등록 시 초기 비밀번호는 <strong>1234</strong>로 설정됩니다.
+                        </p>
+                        
+                        <button type="submit" class="btn btn-primary w-100">저장</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allCustomers = [];
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomers();
+            loadProjects();
+            loadComplaints();
+            loadEmployees(); //  추가: 구성원 로드 
+        });
+
+        // 1. 고객사 관리
+        async function loadCustomers() {
+            const res = await fetch('/api/customers');
+            allCustomers = await res.json();  //  수정: allCustomers에 저장 
+            const tbody = document.getElementById('adminCustomerBody');
+            
+            tbody.innerHTML = '';
+
+            allCustomers.forEach(c => {  //  수정: data → allCustomers 
+                // 테이블에 행 추가
+                tbody.innerHTML += `
+                    <tr>
+                    <td>${c.name}</td>
+                        <td>${c.business_registration_number || '-'}</td>
+                        <td>${c.address || '-'}</td>
+                        <td>${c.establishment_date ? new Date(c.establishment_date).toLocaleDateString('ko-KR') : '-'}</td>
+                        <td>${c.representative_name || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick='editCustomer(${JSON.stringify(c)})'>수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            //  추가: 고객사 목록 로드 후 필터 함수 호출 (프로젝트 선택 드롭다운 업데이트) 
+            filterCustomerSelect();
+        }
+
+        function openCustomerModal() {
+            document.getElementById('customerForm').reset();
+            document.getElementById('custId').value = '';
+            document.getElementById('custModalTitle').innerText = '고객사 등록';
+            new bootstrap.Modal(document.getElementById('customerModal')).show();
+        }
+
+        function editCustomer(data) {
+            document.getElementById('custId').value = data.id;
+            document.getElementById('custName').value = data.name;
+            document.getElementById('custRegNum').value = data.business_registration_number || '';
+            document.getElementById('custAddress').value = data.address || '';
+            document.getElementById('custEstDate').value = data.establishment_date ? data.establishment_date.split('T')[0] : '';
+            document.getElementById('custRepName').value = data.representative_name || '';
+            
+            document.getElementById('custModalTitle').innerText = '고객사 수정';
+            new bootstrap.Modal(document.getElementById('customerModal')).show();
+        }
+        function filterCustomerSelect() {
+            const searchTerm = document.getElementById('customerSearchInput')?.value.toLowerCase() || '';
+            const select = document.getElementById('projCustomer');
+            const currentValue = select.value;  // 현재 선택된 값 저장
+            
+            select.innerHTML = '<option value=""></option>';
+            
+            const filtered = allCustomers.filter(c => {
+                if (!searchTerm) return true;
+                return (c.name && c.name.toLowerCase().includes(searchTerm)) ||
+                    (c.business_registration_number && c.business_registration_number.includes(searchTerm));
+            });
+            
+            filtered.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = c.name;
+                select.appendChild(option);
+            });
+            
+            // 검색 후에도 기존 선택값 유지
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+
+        function updateCustomerSearchInput() {
+            const select = document.getElementById('projCustomer');
+            const searchInput = document.getElementById('customerSearchInput');
+            
+            if (select && searchInput && select.value) {
+                // 선택된 옵션의 텍스트(회사명)를 검색창에 표시
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption && selectedOption.textContent) {
+                    searchInput.value = selectedOption.textContent;
+                }
+            }
+        }
+
+        document.getElementById('customerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            const id = data.id;
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/customers/${id}` : '/api/customers';
+            
+            if (!id) delete data.id;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            //  수정: 탭 유지하면서 데이터만 새로고침 
+            bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+            loadCustomers();
+            loadProjects(); // 고객사 변경시 프로젝트 셀렉트도 업데이트
+        };
+
+        async function deleteCustomer(id) {
+            if(confirm('정말 삭제하시겠습니까?')) {
+                await fetch(`/api/customers/${id}`, { method: 'DELETE' });
+                loadCustomers();
+                loadProjects(); 
+            }
+        }
+
+        // 2. 프로젝트 관리
+        async function loadProjects() {
+            const res = await fetch('/api/projects');
+            const data = await res.json();
+            const tbody = document.getElementById('adminProjectBody');
+            const compSelect = document.getElementById('compProject'); // 컴플레인 모달의 프로젝트 선택 박스
+
+            tbody.innerHTML = '';
+            compSelect.innerHTML = '<option value="">선택하세요</option>';
+
+            data.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${p.project_code}</td>
+                        <td>${p.name}</td>
+                        <td>${p.customer_name}</td>
+                        <td>${p.status}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick='editProject(${JSON.stringify(p)})'>수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProject(${p.id})">삭제</button>
+                        </td>
+                    </tr>
+                `;
+                // 컴플레인 수정용 프로젝트 옵션 추가
+                compSelect.innerHTML += `<option value="${p.id}">[${p.project_code}] ${p.name}</option>`;
+            });
+        }
+
+        function openProjectModal() {
+            document.getElementById('projectForm').reset();
+            document.getElementById('projId').value = '';
+            document.getElementById('projModalTitle').innerText = '프로젝트 등록';
+            new bootstrap.Modal(document.getElementById('projectModal')).show();
+        }
+
+        function editProject(data) {
+            document.getElementById('projId').value = data.id;
+            document.getElementById('projCode').value = data.project_code;
+            document.getElementById('projName').value = data.name;
+            document.getElementById('projCustomer').value = data.customer_id;
+            document.getElementById('projType').value = data.product_type || '';
+            document.getElementById('projStatus').value = data.status;
+            document.getElementById('projModalTitle').innerText = '프로젝트 수정';
+            new bootstrap.Modal(document.getElementById('projectModal')).show();
+        }
+
+        document.getElementById('projectForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            const id = data.id;
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/projects/${id}` : '/api/projects';
+            if (!id) delete data.id;
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            //  수정: 탭 유지하면서 데이터만 새로고침 
+            bootstrap.Modal.getInstance(document.getElementById('projectModal')).hide();
+            loadProjects();
+        }
+
+        async function deleteProject(id) {
+            if(confirm('정말 삭제하시겠습니까?')) {
+                await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+                loadProjects();
+            }
+        }
+
+        // 3. 컴플레인 관리 (수정/삭제)
+        async function loadComplaints() {
+            const res = await fetch('/api/complaints');
+            const data = await res.json();
+            const tbody = document.getElementById('adminComplaintBody');
+            tbody.innerHTML = '';
+            data.forEach(c => {
+                // 수정 시 필요한 데이터를 JSON 문자열로 변환 (따옴표 이스케이프 처리)
+                const safeData = JSON.stringify(c).replace(/'/g, "&apos;");
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.complaint_no}</td>
+                        <td>${c.project_name}</td>
+                        <td>${c.title}</td>
+                        <td>${c.received_date}</td>
+                        <td>
+                            <!--  수정 버튼 추가  -->
+                            <button class="btn btn-sm btn-warning" onclick='editComplaint(${safeData})'>수정</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteComplaint(${c.id})">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        //  수정: 컴플레인 수정 함수 - compNo 필드 제거 (주석 처리됨) 
+        function editComplaint(data) {
+            document.getElementById('compId').value = data.id;
+            // compNo 필드가 주석 처리되어 있으므로 제거
+            // document.getElementById('compNo').value = data.complaint_no;
+            document.getElementById('compProject').value = data.project_id;
+            document.getElementById('compTitle').value = data.title;
+            document.getElementById('compManager').value = data.manager_name || '';
+            
+            // 날짜 포맷팅 (YYYY-MM-DD)
+            if(data.received_date) {
+                document.getElementById('compDate').value = data.received_date.split('T')[0];
+            } else {
+                document.getElementById('compDate').value = '';
+            }
+            
+            document.getElementById('compDesc').value = data.description || '';
+            document.getElementById('compReq').value = data.customer_request || '';
+            
+            new bootstrap.Modal(document.getElementById('complaintModal')).show();
+        }
+
+        //  컴플레인 수정 저장 
+        document.getElementById('complaintForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            const id = data.id;
+            
+            // 수정 기능만 있으므로 PUT 메소드 사용
+            await fetch(`/api/complaints/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            //  수정: 탭 유지하면서 데이터만 새로고침 
+            bootstrap.Modal.getInstance(document.getElementById('complaintModal')).hide();
+            loadComplaints();
+        };
+
+        async function deleteComplaint(id) {
+            if(confirm('정말 삭제하시겠습니까?')) {
+                await fetch(`/api/complaints/${id}`, { method: 'DELETE' });
+                loadComplaints();
+            }
+        }
+
+        //  추가: 4. 구성원 관리 
+        let allEmployees = [];
+
+        async function loadEmployees() {
+            try {
+                const res = await fetch('/api/employees');
+                allEmployees = await res.json();
+                renderEmployeeTable(allEmployees);
+            } catch (err) {
+                console.error('구성원 목록 로드 실패:', err);
+            }
+        }
+
+        function renderEmployeeTable(data) {
+            const tbody = document.getElementById('adminEmployeeBody');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">등록된 구성원이 없습니다.</td></tr>';
+                return;
+            }
+            
+            data.forEach(emp => {
+                const statusBadge = emp.is_active 
+                    ? '<span class="badge bg-success">활성</span>' 
+                    : '<span class="badge bg-secondary">비활성</span>';
+                
+                let authBadges = '';
+                if (emp.is_superadmin) {
+                    authBadges = '<span class="badge bg-danger">관리자</span>';
+                } else if (emp.is_admin) {
+                    authBadges = '<span class="badge bg-warning text-dark">팀장</span>';
+                } else {
+                    authBadges = '<span class="badge bg-light text-dark">일반</span>';
+                }
+                
+                const safeData = JSON.stringify(emp).replace(/'/g, "&apos;");
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${emp.email}</td>
+                        <td><strong>${emp.name}</strong></td>
+                        <td>${emp.position || '-'}</td>
+                        <td>${emp.department || '-'}</td>
+                        <td>${emp.phone || '-'}</td>
+                        <td>${statusBadge}</td>
+                        <td>${authBadges}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick='editEmployee(${safeData})'>수정</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="resetPassword(${emp.id}, '${emp.name}')">비밀번호 초기화</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id}, '${emp.name}')">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterEmployees() {
+            const deptFilter = document.getElementById('deptFilter').value;
+            const searchTerm = document.getElementById('empSearchInput').value.toLowerCase();
+            
+            const filtered = allEmployees.filter(emp => {
+                const matchDept = !deptFilter || emp.department === deptFilter;
+                const matchSearch = !searchTerm || 
+                    (emp.name && emp.name.toLowerCase().includes(searchTerm)) ||
+                    (emp.email && emp.email.toLowerCase().includes(searchTerm));
+                return matchDept && matchSearch;
+            });
+            
+            renderEmployeeTable(filtered);
+        }
+
+        function openEmployeeModal() {
+            document.getElementById('employeeForm').reset();
+            document.getElementById('empId').value = '';
+            document.getElementById('empIsActive').checked = true;
+            document.getElementById('empModalTitle').innerHTML = '<i class="bi bi-person-plus me-2"></i>구성원 등록';
+            new bootstrap.Modal(document.getElementById('employeeModal')).show();
+        }
+
+        function editEmployee(data) {
+            document.getElementById('empId').value = data.id;
+            document.getElementById('empEmail').value = data.email;
+            document.getElementById('empName').value = data.name;
+            document.getElementById('empPosition').value = data.position || '';
+            document.getElementById('empDepartment').value = data.department || '';
+            document.getElementById('empPhone').value = data.phone || '';
+            document.getElementById('empIsActive').checked = data.is_active;
+            document.getElementById('empIsAdmin').checked = data.is_admin;
+            document.getElementById('empIsSuperadmin').checked = data.is_superadmin;
+            
+            document.getElementById('empModalTitle').innerHTML = '<i class="bi bi-person-gear me-2"></i>구성원 수정';
+            new bootstrap.Modal(document.getElementById('employeeModal')).show();
+        }
+
+        document.getElementById('employeeForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                email: formData.get('email'),
+                name: formData.get('name'),
+                position: formData.get('position'),
+                department: formData.get('department'),
+                phone: formData.get('phone'),  
+                is_active: document.getElementById('empIsActive').checked,
+                is_admin: document.getElementById('empIsAdmin').checked,
+                is_superadmin: document.getElementById('empIsSuperadmin').checked
+            };
+            
+            const id = document.getElementById('empId').value;
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/employees/${id}` : '/api/employees';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                
+                if (!res.ok) {
+                    alert(result.error || '저장에 실패했습니다.');
+                    return;
+                }
+                
+                bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
+                loadEmployees();
+                alert(id ? '구성원 정보가 수정되었습니다.' : '구성원이 등록되었습니다.');
+            } catch (err) {
+                console.error('저장 실패:', err);
+                alert('저장에 실패했습니다.');
+            }
+        };
+
+        async function resetPassword(id, name) {
+            if (confirm(`${name}님의 비밀번호를 1234로 초기화하시겠습니까?`)) {
+                try {
+                    const res = await fetch(`/api/employees/${id}/reset-password`, { method: 'PATCH' });
+                    const result = await res.json();
+                    alert(result.message || '비밀번호가 초기화되었습니다.');
+                } catch (err) {
+                    console.error('비밀번호 초기화 실패:', err);
+                    alert('비밀번호 초기화에 실패했습니다.');
+                }
+            }
+        }
+
+        async function deleteEmployee(id, name) {
+            if (confirm(`정말 ${name}님을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.`)) {
+                try {
+                    await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+                    loadEmployees();
+                    alert('구성원이 삭제되었습니다.');
+                } catch (err) {
+                    console.error('삭제 실패:', err);
+                    alert('삭제에 실패했습니다.');
+                }
+            }
+        }
+    </script>
+</body>
+
+<style>
+    /* 고객사 테이블 셀 스타일 */
+    #adminCustomerBody td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px; /* 기본 최대 너비 */
+    }
+    
+    /* 사업자등록번호는 더 긴 너비 허용 */
+    #adminCustomerBody td:nth-child(2) {
+        max-width: 180px;
+    }
+    
+    /* 주소는 긴 텍스트 허용 */
+    #adminCustomerBody td:nth-child(3) {
+        max-width: 250px;
+    }
+    
+    /* 대표자명은 좁게 */
+    #adminCustomerBody td:nth-child(5) {
+        max-width: 100px;
+    }
+    
+    /* 툴팁 표시를 위한 title 속성 추가 */
+    #adminCustomerBody td:hover {
+        overflow: visible;
+        white-space: normal;
+    }
+    </style>
+
+</html>

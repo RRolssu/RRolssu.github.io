@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>인터맥 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+
+<body>
+    <div id="navbar-container"></div>
+        
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <!-- ★★★★ 추가: 좌측 폴더 트리 ★★★★ -->
+            <div class="col-md-3 folder-tree pe-0">
+                <div class="p-3">
+                    <h6 class="mb-3"><i class="bi bi-folder-fill text-warning me-2"></i>품질 문서</h6>
+                    <div id="folderTree">
+                        <!-- 큰 분류 폴더들 -->
+                        <div class="folder-item root-folder" data-folder-id="1" data-folder-name="인증/심사">
+                            <i class="bi bi-folder-fill text-warning"></i>
+                            <span>인증/심사</span>
+                        </div>
+                        <div id="subfolder-1" class="nested-folder" style="display: none;"></div>
+                        
+                        <div class="folder-item root-folder" data-folder-id="2" data-folder-name="품질 경영">
+                            <i class="bi bi-folder-fill text-warning"></i>
+                            <span>품질 경영</span>
+                        </div>
+                        <div id="subfolder-2" class="nested-folder" style="display: none;"></div>
+                        
+                        <div class="folder-item root-folder" data-folder-id="3" data-folder-name="검사/시험">
+                            <i class="bi bi-folder-fill text-warning"></i>
+                            <span>검사/시험</span>
+                        </div>
+                        <div id="subfolder-3" class="nested-folder" style="display: none;"></div>
+                        
+                        <div class="folder-item root-folder" data-folder-id="4" data-folder-name="고객 요구 사항서">
+                            <i class="bi bi-folder-fill text-warning"></i>
+                            <span>고객 요구 사항서</span>
+                        </div>
+                        <div id="subfolder-4" class="nested-folder" style="display: none;"></div>
+                        
+                        <div class="folder-item root-folder" data-folder-id="5" data-folder-name="부적합 보고서">
+                            <i class="bi bi-folder-fill text-warning"></i>
+                            <span>부적합 보고서</span>
+                        </div>
+                        <div id="subfolder-5" class="nested-folder" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ★★★★ 추가: 우측 파일 목록 영역 ★★★★ -->
+            <div class="col-md-9 ps-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 id="currentFolderTitle"><i class="bi bi-folder2-open me-2"></i>폴더를 선택하세요</h4>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="createNewFolder()">
+                            <i class="bi bi-folder-plus me-1"></i>새 폴더
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="uploadDocument()">
+                            <i class="bi bi-file-earmark-plus me-1"></i>문서 업로드
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 경로 표시 (Breadcrumb) -->
+                <nav class="breadcrumb-nav" id="breadcrumb">
+                    <span class="text-muted">품질 문서</span>
+                </nav>
+
+                <!-- 파일/폴더 목록 -->
+                <div class="bg-white border rounded" id="fileListContainer">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-folder2-open" style="font-size: 3rem;"></i>
+                        <p class="mt-3">좌측에서 폴더를 선택하세요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ★★★★ 추가: 우클릭 컨텍스트 메뉴 ★★★★ -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="contextAction('open')">
+            <i class="bi bi-folder2-open"></i> 열기
+        </div>
+        <div class="context-menu-item" onclick="contextAction('copy')">
+            <i class="bi bi-clipboard"></i> 복사
+        </div>
+        <div class="context-menu-item" onclick="contextAction('paste')">
+            <i class="bi bi-clipboard-check"></i> 붙여넣기
+        </div>
+        <div class="context-menu-item" onclick="contextAction('rename')">
+            <i class="bi bi-pencil"></i> 이름 변경
+        </div>
+        <div class="context-menu-item" onclick="contextAction('delete')">
+            <i class="bi bi-trash text-danger"></i> <span class="text-danger">삭제</span>
+        </div>
+    </div>
+
+    <!-- ★★★★ 추가: 새 폴더 생성 모달 ★★★★ -->
+    <div class="modal fade" id="newFolderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-folder-plus me-2"></i>새 폴더</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">폴더 이름</label>
+                        <input type="text" class="form-control" id="newFolderName" placeholder="새 폴더">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmCreateFolder()">생성</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ★★★★ 추가: 문서 업로드 모달 ★★★★ -->
+    <div class="modal fade" id="uploadDocModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>문서 업로드</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="docUploadForm">
+                        <div class="mb-3">
+                            <label class="form-label">파일 선택</label>
+                            <input type="file" class="form-control" name="files" multiple>
+                            <small class="text-muted">여러 파일을 선택할 수 있습니다</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmUpload()">업로드</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // ★★★★ 수정: API 연동하여 실제 폴더/문서 기능 구현 ★★★★
+        let currentFolderId = null;
+        let currentFolderName = null;
+        let pathStack = []; // 경로 스택 (breadcrumb용)
+        let clipboard = null; // 복사한 항목 저장
+        let selectedItem = null;
+        let allFolders = []; // 모든 폴더 목록 캐시
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = getCurrentUser();
+            if (!user) { location.href = '/login.html'; return; }
+
+            // 폴더 목록 로드
+            await loadFolderTree();
+
+            // 컨텍스트 메뉴 닫기
+            document.addEventListener('click', () => {
+                document.getElementById('contextMenu').style.display = 'none';
+            });
+
+            // 키보드 단축키 (Ctrl+C, Ctrl+V)
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'c' && selectedItem) {
+                    clipboard = { ...selectedItem };
+                    alert('복사되었습니다.');
+                }
+                if (e.ctrlKey && e.key === 'v' && clipboard && currentFolderId) {
+                    pasteItem();
+                }
+            });
+        });
+
+        // ★★★★ 수정: 폴더 트리 로드 - 재귀적으로 하위 폴더 표시 ★★★★
+        async function loadFolderTree() {
+            try {
+                const res = await fetch('/api/quality-docs/folders');
+                allFolders = await res.json();
+                
+                // 루트 폴더들 (parent_id가 null인 것들)
+                const rootFolders = allFolders.filter(f => f.parent_id === null);
+                const folderTree = document.getElementById('folderTree');
+                folderTree.innerHTML = '';
+                
+                rootFolders.forEach(folder => {
+                    renderFolderItem(folder, folderTree, 0);
+                });
+            } catch (err) {
+                console.error('폴더 트리 로드 실패:', err);
+            }
+        }
+
+        // ★★★★ 추가: 폴더 아이템 렌더링 (재귀적으로 하위 폴더 포함) ★★★★
+        function renderFolderItem(folder, container, depth) {
+            const isRootFolder = folder.parent_id === null;
+            const hasChildren = allFolders.some(f => f.parent_id === folder.id);
+            
+            // 폴더 아이템 생성
+            const folderDiv = document.createElement('div');
+            folderDiv.className = `folder-item ${isRootFolder ? 'root-folder' : 'sub-folder'}`;
+            folderDiv.dataset.folderId = folder.id;
+            folderDiv.dataset.folderName = folder.name;
+            folderDiv.style.paddingLeft = `${12 + depth * 16}px`;
+            
+            // 화살표 아이콘 (하위 폴더가 있으면 표시)
+            const arrowIcon = hasChildren ? 
+                `<i class="bi bi-chevron-right folder-arrow me-1" style="font-size: 0.7rem; transition: transform 0.2s;"></i>` : 
+                `<span style="width: 14px; display: inline-block;"></span>`;
+            
+            folderDiv.innerHTML = `${arrowIcon}<i class="bi bi-folder-fill text-warning"></i><span>${folder.name}</span>`;
+            
+            folderDiv.addEventListener('click', function(e) { 
+                e.stopPropagation();
+                selectFolderFromTree(this);
+            });
+            folderDiv.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                showContextMenu(e, this);
+            });
+            container.appendChild(folderDiv);
+            
+            // 하위 폴더 컨테이너
+            const subfolderDiv = document.createElement('div');
+            subfolderDiv.id = `subfolder-${folder.id}`;
+            subfolderDiv.className = 'nested-folder';
+            subfolderDiv.style.display = 'none';
+            container.appendChild(subfolderDiv);
+            
+            // 하위 폴더들 렌더링
+            const childFolders = allFolders.filter(f => f.parent_id === folder.id);
+            childFolders.forEach(child => {
+                renderFolderItem(child, subfolderDiv, depth + 1);
+            });
+        }
+
+        // ★★★★ 추가: 트리에서 폴더 선택 시 하위 폴더 토글 ★★★★
+        function selectFolderFromTree(element) {
+            const folderId = element.dataset.folderId;
+            const subfolderContainer = document.getElementById(`subfolder-${folderId}`);
+            const arrowIcon = element.querySelector('.folder-arrow');
+            
+            // 하위 폴더 토글
+            if (subfolderContainer && subfolderContainer.children.length > 0) {
+                const isExpanded = subfolderContainer.style.display !== 'none';
+                subfolderContainer.style.display = isExpanded ? 'none' : 'block';
+                if (arrowIcon) {
+                    arrowIcon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+                }
+            }
+            
+            // 폴더 선택
+            selectFolder(element);
+        }
+
+        function selectFolder(element) {
+            document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+            element.classList.add('active');
+            
+            currentFolderId = element.dataset.folderId;
+            currentFolderName = element.dataset.folderName;
+            
+            // 경로 스택 업데이트
+            const folder = allFolders.find(f => f.id == currentFolderId);
+            if (folder && folder.parent_id === null) {
+                pathStack = [{ id: folder.id, name: folder.name }];
+            } else if (folder) {
+                // 상위 폴더 찾기
+                let current = folder;
+                const tempPath = [];
+                while (current) {
+                    tempPath.unshift({ id: current.id, name: current.name });
+                    current = allFolders.find(f => f.id === current.parent_id);
+                }
+                pathStack = tempPath;
+            }
+            
+            document.getElementById('currentFolderTitle').innerHTML = 
+                `<i class="bi bi-folder2-open me-2"></i>${currentFolderName}`;
+            
+            updateBreadcrumb();
+            loadFolderContents(currentFolderId);
+        }
+
+        function updateBreadcrumb() {
+            let html = `<span class="text-primary" style="cursor:pointer" onclick="goToRoot()">품질 문서</span>`;
+            pathStack.forEach((item, index) => {
+                html += `<i class="bi bi-chevron-right mx-2 text-muted" style="font-size: 0.8rem;"></i>`;
+                if (index === pathStack.length - 1) {
+                    html += `<span>${item.name}</span>`;
+                } else {
+                    html += `<span class="text-primary" style="cursor:pointer" onclick="navigateToFolder(${item.id}, '${item.name}')">${item.name}</span>`;
+                }
+            });
+            document.getElementById('breadcrumb').innerHTML = html;
+        }
+
+        function navigateToFolder(folderId, folderName) {
+            currentFolderId = folderId;
+            currentFolderName = folderName;
+            
+            // 경로 스택에서 해당 폴더까지만 유지
+            const index = pathStack.findIndex(p => p.id == folderId);
+            if (index !== -1) {
+                pathStack = pathStack.slice(0, index + 1);
+            }
+            
+            document.getElementById('currentFolderTitle').innerHTML = 
+                `<i class="bi bi-folder2-open me-2"></i>${folderName}`;
+            updateBreadcrumb();
+            loadFolderContents(folderId);
+        }
+
+        async function loadFolderContents(folderId) {
+            try {
+                const res = await fetch(`/api/quality-docs/folders/${folderId}/contents`);
+                const data = await res.json();
+                
+                const container = document.getElementById('fileListContainer');
+                
+                if (data.contents.length === 0) {
+                    container.innerHTML = `
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-folder2-open" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">이 폴더는 비어 있습니다. 새 폴더나 문서를 추가하세요.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<div class="list-group list-group-flush">';
+                
+                // 폴더 먼저 표시
+                data.folders.forEach(folder => {
+                    html += `
+                        <div class="list-group-item list-group-item-action d-flex align-items-center file-item" 
+                             data-folder-id="${folder.id}" data-folder-name="${folder.name}"
+                             onclick="enterSubfolder(${folder.id}, '${folder.name}')"
+                             oncontextmenu="event.preventDefault(); showContextMenu(event, this);">
+                            <i class="bi bi-folder-fill text-warning me-3" style="font-size: 1.5rem;"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium">${folder.name}</div>
+                                <small class="text-muted">폴더</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // 파일 표시
+                data.files.forEach(file => {
+                    const icon = getFileIcon(file.name);
+                    const size = formatFileSize(file.file_size);
+                    const date = new Date(file.created_at).toLocaleDateString('ko-KR');
+                    html += `
+                        <div class="list-group-item list-group-item-action d-flex align-items-center file-item" 
+                             data-file-id="${file.id}" data-file-name="${file.name}"
+                             oncontextmenu="event.preventDefault(); showContextMenu(event, this);">
+                            <i class="bi ${icon} me-3" style="font-size: 1.5rem;"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium">${file.name}</div>
+                                <small class="text-muted">${size} • ${file.uploader_name || '사용자'} • ${date}</small>
+                            </div>
+                            <a href="${file.file_path}" class="btn btn-sm btn-outline-primary" target="_blank" onclick="event.stopPropagation();">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); var r=this.closest('.file-item'); if(r) deleteItem({ type: 'file', id: parseInt(r.dataset.fileId, 10), name: r.dataset.fileName || '' });" title="삭제">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                console.error('폴더 내용 로드 실패:', err);
+            }
+        }
+
+        function enterSubfolder(folderId, folderName) {
+            currentFolderId = folderId;
+            currentFolderName = folderName;
+            pathStack.push({ id: folderId, name: folderName });
+            
+            document.getElementById('currentFolderTitle').innerHTML = 
+                `<i class="bi bi-folder2-open me-2"></i>${folderName}`;
+            updateBreadcrumb();
+            loadFolderContents(folderId);
+        }
+
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const icons = {
+                'pdf': 'bi-file-earmark-pdf text-danger',
+                'doc': 'bi-file-earmark-word text-primary',
+                'docx': 'bi-file-earmark-word text-primary',
+                'xls': 'bi-file-earmark-excel text-success',
+                'xlsx': 'bi-file-earmark-excel text-success',
+                'ppt': 'bi-file-earmark-ppt text-warning',
+                'pptx': 'bi-file-earmark-ppt text-warning',
+                'jpg': 'bi-file-earmark-image text-info',
+                'jpeg': 'bi-file-earmark-image text-info',
+                'png': 'bi-file-earmark-image text-info',
+                'gif': 'bi-file-earmark-image text-info',
+                'zip': 'bi-file-earmark-zip text-secondary',
+                'rar': 'bi-file-earmark-zip text-secondary',
+                'txt': 'bi-file-earmark-text text-muted'
+            };
+            return icons[ext] || 'bi-file-earmark text-muted';
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '-';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function createNewFolder() {
+            if (!currentFolderId) {
+                alert('먼저 상위 폴더를 선택하세요.');
+                return;
+            }
+            document.getElementById('newFolderName').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('newFolderModal'));
+            modal.show();
+        }
+
+        async function confirmCreateFolder() {
+            const name = document.getElementById('newFolderName').value.trim();
+            if (!name) {
+                alert('폴더 이름을 입력하세요.');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/quality-docs/folders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, parent_id: currentFolderId })
+                });
+                
+                if (res.ok) {
+                    alert(`'${name}' 폴더가 생성되었습니다.`);
+                    bootstrap.Modal.getInstance(document.getElementById('newFolderModal')).hide();
+                    await loadFolderTree();
+                    loadFolderContents(currentFolderId);
+                } else {
+                    const error = await res.json();
+                    alert('폴더 생성 실패: ' + error.error);
+                }
+            } catch (err) {
+                console.error('폴더 생성 실패:', err);
+                alert('폴더 생성에 실패했습니다.');
+            }
+        }
+
+        function uploadDocument() {
+            if (!currentFolderId) {
+                alert('먼저 폴더를 선택하세요.');
+                return;
+            }
+            document.querySelector('#docUploadForm input[name="files"]').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('uploadDocModal'));
+            modal.show();
+        }
+
+        async function confirmUpload() {
+            const fileInput = document.querySelector('#docUploadForm input[name="files"]');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                alert('파일을 선택하세요.');
+                return;
+            }
+            
+            const user = getCurrentUser();
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            formData.append('uploader_name', user?.name || '사용자');
+            
+            try {
+                const res = await fetch(`/api/quality-docs/folders/${currentFolderId}/files`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (res.ok) {
+                    alert(`${files.length}개 파일이 업로드되었습니다.`);
+                    bootstrap.Modal.getInstance(document.getElementById('uploadDocModal')).hide();
+                    loadFolderContents(currentFolderId);
+                } else {
+                    const error = await res.json();
+                    alert('업로드 실패: ' + error.error);
+                }
+            } catch (err) {
+                console.error('업로드 실패:', err);
+                alert('파일 업로드에 실패했습니다.');
+            }
+        }
+
+        function showContextMenu(e, element) {
+            const isFolderItem = element.dataset.folderId !== undefined;
+            const isFileItem = element.dataset.fileId !== undefined;
+            
+            selectedItem = {
+                type: isFolderItem ? 'folder' : 'file',
+                id: isFolderItem ? element.dataset.folderId : element.dataset.fileId,
+                name: isFolderItem ? element.dataset.folderName : element.dataset.fileName
+            };
+            
+            // 루트 폴더인지 확인
+            const folder = allFolders.find(f => f.id == selectedItem.id);
+            const isRootFolder = folder && folder.parent_id === null;
+            
+            const menu = document.getElementById('contextMenu');
+            menu.style.display = 'block';
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            
+            // 루트 폴더는 이름 변경, 삭제 불가
+            const renameItem = menu.querySelector('[onclick="contextAction(\'rename\')"]');
+            const deleteItem = menu.querySelector('[onclick="contextAction(\'delete\')"]');
+            if (renameItem) renameItem.style.display = isRootFolder ? 'none' : 'flex';
+            if (deleteItem) deleteItem.style.display = isRootFolder ? 'none' : 'flex';
+        }
+
+        async function contextAction(action) {
+            document.getElementById('contextMenu').style.display = 'none';
+            
+            switch(action) {
+                case 'open':
+                    if (selectedItem.type === 'folder') {
+                        enterSubfolder(selectedItem.id, selectedItem.name);
+                    }
+                    break;
+                case 'copy':
+                    clipboard = { ...selectedItem };
+                    alert('복사되었습니다.');
+                    break;
+                case 'paste':
+                    await pasteItem();
+                    break;
+                case 'rename':
+                    const newName = prompt('새 이름을 입력하세요:', selectedItem.name);
+                    if (newName && newName !== selectedItem.name) {
+                        await renameItem(selectedItem, newName);
+                    }
+                    break;
+                case 'delete':
+                    if (confirm(`'${selectedItem.name}'을(를) 삭제하시겠습니까?`)) {
+                        await deleteItem(selectedItem);
+                    }
+                    break;
+            }
+        }
+
+        async function renameItem(item, newName) {
+            try {
+                const endpoint = item.type === 'folder' 
+                    ? `/api/quality-docs/folders/${item.id}`
+                    : `/api/quality-docs/files/${item.id}`;
+                
+                const res = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (res.ok) {
+                    alert(`'${newName}'으로 변경되었습니다.`);
+                    await loadFolderTree();
+                    loadFolderContents(currentFolderId);
+                } else {
+                    const error = await res.json();
+                    alert('이름 변경 실패: ' + error.error);
+                }
+            } catch (err) {
+                console.error('이름 변경 실패:', err);
+                alert('이름 변경에 실패했습니다.');
+            }
+        }
+
+        async function deleteItem(item) {
+            try {
+                const endpoint = item.type === 'folder' 
+                    ? `/api/quality-docs/folders/${item.id}`
+                    : `/api/quality-docs/files/${item.id}`;
+                
+                const res = await fetch(endpoint, { method: 'DELETE' });
+                
+                if (res.ok) {
+                    alert('삭제되었습니다.');
+                    await loadFolderTree();
+                    loadFolderContents(currentFolderId);
+                } else {
+                    const error = await res.json();
+                    alert('삭제 실패: ' + error.error);
+                }
+            } catch (err) {
+                console.error('삭제 실패:', err);
+                alert('삭제에 실패했습니다.');
+            }
+        }
+
+        async function pasteItem() {
+            if (!clipboard) {
+                alert('복사된 항목이 없습니다.');
+                return;
+            }
+            if (!currentFolderId) {
+                alert('붙여넣을 폴더를 선택하세요.');
+                return;
+            }
+            
+            try {
+                const endpoint = clipboard.type === 'folder'
+                    ? `/api/quality-docs/folders/${clipboard.id}/copy`
+                    : `/api/quality-docs/files/${clipboard.id}/copy`;
+                
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_folder_id: currentFolderId })
+                });
+                
+                if (res.ok) {
+                    alert(`'${clipboard.name}'이(가) 현재 폴더에 붙여넣기 되었습니다.`);
+                    await loadFolderTree();
+                    loadFolderContents(currentFolderId);
+                } else {
+                    const error = await res.json();
+                    alert('붙여넣기 실패: ' + error.error);
+                }
+            } catch (err) {
+                console.error('붙여넣기 실패:', err);
+                alert('붙여넣기에 실패했습니다.');
+            }
+        }
+
+        function goToRoot() {
+            currentFolderId = null;
+            currentFolderName = null;
+            pathStack = [];
+            document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
+            document.getElementById('currentFolderTitle').innerHTML = 
+                '<i class="bi bi-folder2-open me-2"></i>폴더를 선택하세요';
+            document.getElementById('breadcrumb').innerHTML = 
+                '<span class="text-muted">품질 문서</span>';
+            document.getElementById('fileListContainer').innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-folder2-open" style="font-size: 3rem;"></i>
+                    <p class="mt-3">좌측에서 폴더를 선택하세요</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+<style>
+    .folder-tree {
+        border-right: 1px solid #dee2e6;
+        min-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    .folder-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .folder-item:hover {
+        background-color: #e9ecef;
+    }
+    .folder-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .folder-item.active i {
+        color: white;
+    }
+    .file-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+    .file-item:hover {
+        background-color: #f8f9fa;
+    }
+    .file-item.selected {
+        background-color: #cfe2ff;
+    }
+    .breadcrumb-nav {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+    .context-menu {
+        position: fixed;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        min-width: 180px;
+        display: none;
+    }
+    .context-menu-item {
+        padding: 8px 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .context-menu-item:hover {
+        background-color: #f8f9fa;
+    }
+    .nested-folder {
+        /* ★★★★ 수정: padding 제거하고 border-left 추가 ★★★★ */
+        margin-left: 8px;
+        border-left: 1px dashed #dee2e6;
+    }
+    /* ★★★★ 추가: 하위 폴더 스타일 ★★★★ */
+    .sub-folder {
+        font-size: 0.9rem;
+    }
+    .folder-arrow {
+        color: #6c757d;
+    }
+    .folder-item.active .folder-arrow {
+        color: white;
+    }
+</style>
+</html>
+

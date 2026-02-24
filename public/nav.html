@@ -1,0 +1,59 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white py-3">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="logoblack.svg" alt="로고" height="30">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto ms-4">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside">프로젝트</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/projects">프로젝트 관리</a></li>
+                        <li><a class="dropdown-item" href="/order-book">수주대장</a></li>
+                        <li><a class="dropdown-item" href="/customers">고객사</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="/change-management">변경관리</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside">품질관리</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/complaints">클레임 관리</a></li>
+                        <li><a class="dropdown-item" href="/reception">클레임 접수</a></li>
+                        <li><a class="dropdown-item" href="/quality-docs">품질 문서</a></li>
+                        <li><a class="dropdown-item" href="/measurement-tools">측정기 관리</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" id="nav-management"><a class="nav-link" href="/management">경영관리</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <a href="https://login.ecount.com/" target="_blank" class="text-dark text-decoration-none me-3" style="font-size: 0.875rem;">
+                    <strong>E-count</strong>
+                </a>
+                <a href="https://home.office.hiworks.com/main" target="_blank" class="text-dark text-decoration-none me-3" style="font-size: 0.875rem;">
+                    <strong>Hiworks</strong>
+                </a>
+                <a href="http://www.inter-mac.co.kr/" target="_blank" class="text-dark text-decoration-none me-3" style="font-size: 0.875rem;">
+                    <strong>홈페이지</strong>
+                </a>
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="bg-light rounded-circle p-2 me-2 text-center" style="width: 35px; height: 35px;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span id="userNameDisplay">사용자</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/admin">관리자 페이지</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="openChangePasswordModal(); return false;">비밀번호 변경</a></li>  
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>로그아웃</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
